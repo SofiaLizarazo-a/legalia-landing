@@ -1,20 +1,26 @@
-const toggleButtons = document.querySelectorAll('.theme-toggle, .theme-toggle-float');
+document.addEventListener("DOMContentLoaded", () => {
 
-toggleButtons.forEach(btn => {
+const buttons = document.querySelectorAll('.theme-toggle, .theme-toggle-float');
+
+buttons.forEach(btn => {
 btn.addEventListener('click', () => {
-const currentTheme = document.documentElement.getAttribute('data-theme');
-const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+const html = document.documentElement;
+const current = html.getAttribute("data-theme");
 
 ```
-document.documentElement.setAttribute('data-theme', newTheme);
-localStorage.setItem('theme', newTheme);
+  const newTheme = current === "dark" ? "light" : "dark";
+  html.setAttribute("data-theme", newTheme);
+
+  localStorage.setItem("theme", newTheme);
+});
 ```
 
 });
-});
 
-// Cargar tema guardado
-const savedTheme = localStorage.getItem('theme');
+// cargar tema guardado
+const savedTheme = localStorage.getItem("theme");
 if (savedTheme) {
-document.documentElement.setAttribute('data-theme', savedTheme);
+document.documentElement.setAttribute("data-theme", savedTheme);
 }
+
+});
