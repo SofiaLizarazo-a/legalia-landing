@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Legalia — Tecnología que transforma la justicia</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0e0c09;
+      --bg2: #151210;
+      --bg3: #1c1812;
+      --gold: #c9a84c;
+      --gold2: #e2c272;
+      --gold-dim: rgba(201,168,76,0.15);
+      --gold-border: rgba(201,168,76,0.25);
+      --text: #f0e8d8;
+      --text-muted: #8a7e68;
+      --text-mid: #c4b89a;
+      --white: #fdf8ef;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 300;
+      overflow-x: hidden;
+    }
+
+    /* ─── SCROLLBAR ─── */
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--gold-border); border-radius: 2px; }
+
+    /* ─── NAV ─── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.4rem 5vw;
+      background: rgba(14,12,9,0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--gold-border);
+      animation: fadeDown .7s ease both;
+    }
+
+    .logo {
+      display: flex; align-items: center; gap: .7rem;
+      text-decoration: none;
+    }
+
+    .logo-icon {
+      width: 36px; height: 36px;
+      position: relative;
+    }
+
+    .logo-icon svg { width: 100%; height: 100%; }
+
+    .logo-text {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem;
+      font-weight: 400;
+      letter-spacing: .18em;
+      color: var(--gold);
+    }
+
+    .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+    .nav-links a {
+      font-size: .72rem;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: color .3s;
+    }
+    .nav-links a:hover { color: var(--gold); }
+
+    .nav-actions { display: flex; gap: 1rem; align-items: center; }
+
+    .btn-ghost {
+      font-size: .72rem;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      padding: .55rem 1.4rem;
+      border: 1px solid var(--gold-border);
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: all .3s;
+      cursor: pointer;
+      background: none;
+    }
+    .btn-ghost:hover { border-color: var(--gold); color: var(--gold); }
+
+    .btn-gold {
+      font-size: .72rem;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      padding: .55rem 1.6rem;
+      background: var(--gold);
+      color: var(--bg);
+      text-decoration: none;
+      transition: all .3s;
+      cursor: pointer;
+      border: none;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+    }
+    .btn-gold:hover { background: var(--gold2); }
+
+    /* ─── HERO ─── */
+    .hero {
+      min-height: 100vh;
+      display: flex; align-items: center;
+      padding: 10rem 5vw 6rem;
+      position: relative; overflow: hidden;
+    }
+
+    .hero-glow {
+      position: absolute;
+      width: 800px; height: 800px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(201,168,76,0.08) 0%, transparent 70%);
+      top: 50%; left: 60%; transform: translate(-50%,-50%);
+      pointer-events: none;
+    }
+
+    .hero-grid {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(201,168,76,0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(201,168,76,0.04) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(ellipse 80% 80% at 60% 50%, black 30%, transparent 100%);
+    }
+
+    .hero-line-v {
+      position: absolute; right: 12%; top: 0; bottom: 0;
+      width: 1px;
+      background: linear-gradient(to bottom, transparent 5%, var(--gold-border) 30%, var(--gold-border) 70%, transparent 95%);
+      animation: lineGrow 1.4s ease .4s both;
+    }
+
+    .hero-content { position: relative; max-width: 680px; }
+
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: .8rem;
+      font-size: .68rem;
+      letter-spacing: .3em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 2.2rem;
+      animation: fadeUp .7s ease .2s both;
+    }
+
+    .eyebrow::before {
+      content: '';
+      display: block; width: 32px; height: 1px;
+      background: var(--gold);
+    }
+
+    h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(3rem, 5.5vw, 5.2rem);
+      font-weight: 300;
+      line-height: 1.07;
+      color: var(--white);
+      margin-bottom: 1.8rem;
+      animation: fadeUp .7s ease .35s both;
+    }
+
+    h1 em {
+      font-style: italic;
+      color: var(--gold);
+    }
+
+    .hero-desc {
+      font-size: 1.05rem;
+      line-height: 1.7;
+      color: var(--text-mid);
+      max-width: 500px;
+      margin-bottom: 3rem;
+      animation: fadeUp .7s ease .5s both;
+    }
+
+    .hero-actions {
+      display: flex; align-items: center; gap: 1.5rem;
+      animation: fadeUp .7s ease .65s both;
+    }
+
+    .btn-primary {
+      font-size: .78rem;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      padding: .9rem 2.4rem;
+      background: var(--gold);
+      color: var(--bg);
+      text-decoration: none;
+      transition: all .3s;
+      font-family: 'DM Sans', sans-serif;
+      font-weight: 500;
+    }
+    .btn-primary:hover { background: var(--gold2); transform: translateY(-2px); }
+
+    .btn-outline {
+      font-size: .78rem;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      padding: .9rem 2.4rem;
+      border: 1px solid var(--gold-border);
+      color: var(--text-muted);
+      text-decoration: none;
+      transition: all .3s;
+    }
+    .btn-outline:hover { border-color: var(--gold); color: var(--gold); }
+
+    .hero-stats {
+      position: absolute; right: 5vw; bottom: 8%;
+      display: flex; flex-direction: column; gap: 2rem;
+      animation: fadeUp .7s ease .8s both;
+    }
+
+    .stat {
+      text-align: right;
+    }
+
+    .stat-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.4rem;
+      font-weight: 300;
+      color: var(--gold);
+      line-height: 1;
+    }
+
+    .stat-label {
+      font-size: .66rem;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-top: .3rem;
+    }
+
+    /* ─── SECTION BASE ─── */
+    section { padding: 7rem 5vw; }
+
+    .section-tag {
+      font-size: .66rem;
+      letter-spacing: .3em;
+      text-transform: uppercase;
+      color: var(--gold);
+      margin-bottom: 1.2rem;
+      display: flex; align-items: center; gap: .8rem;
+    }
+    .section-tag::before { content: ''; display: block; width: 24px; height: 1px; background: var(--gold); }
+
+    h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(2rem, 3.5vw, 3.2rem);
+      font-weight: 300;
+      line-height: 1.15;
+      color: var(--white);
+      margin-bottom: 1.2rem;
+    }
+
+    h2 em { font-style: italic; color: var(--gold); }
+
+    .section-desc {
+      font-size: .95rem;
+      line-height: 1.75;
+      color: var(--text-mid);
+      max-width: 520px;
+    }
+
+    /* ─── DIVIDER ─── */
+    .divider {
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--gold-border), transparent);
+      margin: 0 5vw;
+    }
+
+    /* ─── HOW IT WORKS ─── */
+    .how {
+      background: var(--bg2);
+    }
+
+    .how-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5rem;
+      align-items: start;
+    }
+
+    .how-steps { margin-top: 3rem; }
+
+    .step {
+      display: flex; gap: 1.5rem;
+      padding: 1.8rem 0;
+      border-bottom: 1px solid rgba(201,168,76,0.1);
+      transition: all .3s;
+    }
+    .step:last-child { border-bottom: none; }
+    .step:hover .step-num { color: var(--gold); }
+
+    .step-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2rem;
+      font-weight: 300;
+      color: var(--text-muted);
+      line-height: 1;
+      min-width: 2.5rem;
+      transition: color .3s;
+    }
+
+    .step-content h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.2rem;
+      font-weight: 400;
+      color: var(--text);
+      margin-bottom: .5rem;
+    }
+
+    .step-content p {
+      font-size: .88rem;
+      line-height: 1.6;
+      color: var(--text-muted);
+    }
+
+    /* ─── FEATURES ─── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1px;
+      background: var(--gold-border);
+      border: 1px solid var(--gold-border);
+      margin-top: 4rem;
+    }
+
+    .feature-card {
+      background: var(--bg);
+      padding: 2.5rem;
+      transition: background .3s;
+      position: relative; overflow: hidden;
+    }
+    .feature-card:hover { background: var(--bg3); }
+    .feature-card:hover .feature-icon { transform: scale(1.1); }
+
+    .feature-icon {
+      width: 44px; height: 44px;
+      margin-bottom: 1.4rem;
+      color: var(--gold);
+      transition: transform .3s;
+    }
+
+    .feature-card h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.15rem;
+      font-weight: 400;
+      color: var(--text);
+      margin-bottom: .7rem;
+    }
+
+    .feature-card p {
+      font-size: .85rem;
+      line-height: 1.65;
+      color: var(--text-muted);
+    }
+
+    .feature-tag {
+      display: inline-block;
+      font-size: .6rem;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      padding: .3rem .8rem;
+      border: 1px solid var(--gold-border);
+      color: var(--gold);
+      margin-top: 1.2rem;
+    }
+
+    /* ─── ROLES ─── */
+    .roles { background: var(--bg2); }
+
+    .roles-header { margin-bottom: 4rem; }
+
+    .roles-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2rem;
+    }
+
+    .role-card {
+      border: 1px solid var(--gold-border);
+      padding: 2.5rem;
+      position: relative;
+      transition: border-color .3s, transform .3s;
+      cursor: default;
+    }
+    .role-card:hover {
+      border-color: var(--gold);
+      transform: translateY(-4px);
+    }
+
+    .role-badge {
+      font-size: .62rem;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: var(--bg);
+      background: var(--gold);
+      padding: .3rem .9rem;
+      margin-bottom: 1.5rem;
+      display: inline-block;
+    }
+
+    .role-card h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem;
+      font-weight: 300;
+      color: var(--white);
+      margin-bottom: 1rem;
+    }
+
+    .role-list { list-style: none; }
+    .role-list li {
+      font-size: .85rem;
+      line-height: 1.6;
+      color: var(--text-muted);
+      padding: .4rem 0;
+      border-bottom: 1px solid rgba(201,168,76,0.06);
+      display: flex; align-items: flex-start; gap: .7rem;
+    }
+    .role-list li::before {
+      content: '—';
+      color: var(--gold);
+      flex-shrink: 0;
+    }
+
+    /* ─── MODULES ─── */
+    .modules-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1.5rem;
+      margin-top: 4rem;
+    }
+
+    .module-item {
+      padding: 1.8rem 1.4rem;
+      border: 1px solid rgba(201,168,76,0.1);
+      text-align: center;
+      transition: all .3s;
+    }
+    .module-item:hover {
+      border-color: var(--gold);
+      background: var(--gold-dim);
+    }
+
+    .module-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2rem;
+      color: var(--gold);
+      opacity: .4;
+      line-height: 1;
+      margin-bottom: .8rem;
+    }
+
+    .module-name {
+      font-size: .78rem;
+      letter-spacing: .08em;
+      color: var(--text-mid);
+      line-height: 1.4;
+    }
+
+    /* ─── STACK ─── */
+    .stack { background: var(--bg2); }
+
+    .stack-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 3rem;
+      font-size: .88rem;
+    }
+
+    .stack-table th {
+      font-size: .65rem;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      padding: 1rem 1.5rem;
+      text-align: left;
+      border-bottom: 1px solid var(--gold-border);
+    }
+
+    .stack-table td {
+      padding: 1.1rem 1.5rem;
+      color: var(--text-mid);
+      border-bottom: 1px solid rgba(201,168,76,0.06);
+      vertical-align: top;
+    }
+
+    .stack-table tr:hover td { background: rgba(201,168,76,0.03); }
+
+    .stack-table td:first-child { color: var(--text); font-weight: 400; }
+    .stack-table td:nth-child(2) { color: var(--gold); }
+
+    /* ─── CTA ─── */
+    .cta-section {
+      text-align: center;
+      padding: 8rem 5vw;
+      position: relative; overflow: hidden;
+    }
+
+    .cta-bg {
+      position: absolute; inset: 0;
+      background: radial-gradient(ellipse 70% 80% at 50% 50%, rgba(201,168,76,0.06) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .cta-section h2 { margin-bottom: 1.5rem; }
+
+    .cta-section p {
+      font-size: 1rem;
+      color: var(--text-mid);
+      max-width: 480px;
+      margin: 0 auto 3rem;
+      line-height: 1.7;
+    }
+
+    .cta-actions { display: flex; align-items: center; justify-content: center; gap: 1.5rem; }
+
+    /* ─── FOOTER ─── */
+    footer {
+      padding: 3rem 5vw;
+      border-top: 1px solid var(--gold-border);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 1rem;
+    }
+
+    .footer-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.2rem;
+      font-weight: 300;
+      letter-spacing: .18em;
+      color: var(--gold);
+    }
+
+    .footer-slogan {
+      font-size: .72rem;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    .footer-right {
+      font-size: .75rem;
+      color: var(--text-muted);
+    }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes lineGrow {
+      from { transform: scaleY(0); transform-origin: top; }
+      to   { transform: scaleY(1); transform-origin: top; }
+    }
+
+    /* ─── SCROLL REVEAL ─── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity .7s ease, transform .7s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 900px) {
+      .nav-links { display: none; }
+      .how-inner { grid-template-columns: 1fr; gap: 3rem; }
+      .features-grid { grid-template-columns: 1fr 1fr; }
+      .roles-grid { grid-template-columns: 1fr; }
+      .modules-grid { grid-template-columns: repeat(3, 1fr); }
+      .hero-stats { display: none; }
+    }
+    @media (max-width: 600px) {
+      .features-grid { grid-template-columns: 1fr; }
+      .modules-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="logo">
+    <div class="logo-icon">
+      <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="18" cy="18" r="17" stroke="#c9a84c" stroke-width="1"/>
+        <!-- Gavel -->
+        <rect x="15" y="7" width="6" height="10" rx="1" fill="#c9a84c" opacity=".9"/>
+        <rect x="16.5" y="17" width="3" height="12" rx="1" fill="#c9a84c" opacity=".6"/>
+        <!-- Wings -->
+        <path d="M15 13 Q8 11 6 17 Q10 15 15 16" fill="#c9a84c" opacity=".5"/>
+        <path d="M21 13 Q28 11 30 17 Q26 15 21 16" fill="#c9a84c" opacity=".5"/>
+        <!-- Nodes -->
+        <circle cx="10" cy="24" r="1.5" fill="#c9a84c" opacity=".6"/>
+        <circle cx="18" cy="28" r="1.5" fill="#c9a84c" opacity=".6"/>
+        <circle cx="26" cy="24" r="1.5" fill="#c9a84c" opacity=".6"/>
+        <line x1="10" y1="24" x2="18" y2="28" stroke="#c9a84c" stroke-width=".8" opacity=".4"/>
+        <line x1="26" y1="24" x2="18" y2="28" stroke="#c9a84c" stroke-width=".8" opacity=".4"/>
+        <line x1="10" y1="24" x2="26" y2="24" stroke="#c9a84c" stroke-width=".8" opacity=".3"/>
+      </svg>
+    </div>
+    <span class="logo-text">LEGALIA</span>
+  </a>
+
+  <ul class="nav-links">
+    <li><a href="#como-funciona">Cómo funciona</a></li>
+    <li><a href="#funcionalidades">Funcionalidades</a></li>
+    <li><a href="#usuarios">Usuarios</a></li>
+    <li><a href="#tecnologia">Tecnología</a></li>
+  </ul>
+
+  <div class="nav-actions">
+    <a href="#" class="btn-ghost">Iniciar sesión</a>
+    <a href="#" class="btn-gold">Registrarse</a>
+  </div>
+</nav>
+
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-line-v"></div>
+
+  <div class="hero-content">
+    <div class="eyebrow">Plataforma Legal Digital</div>
+    <h1>Tecnología que<br/><em>transforma</em><br/>la justicia.</h1>
+    <p class="hero-desc">
+      Legalia conecta clientes con abogados en un espacio seguro, centralizado y eficiente. 
+      Gestiona tus casos, comunícate en tiempo real y sigue cada proceso desde un solo lugar.
+    </p>
+    <div class="hero-actions">
+      <a href="#" class="btn-primary">Comenzar ahora</a>
+      <a href="#como-funciona" class="btn-outline">Ver cómo funciona</a>
+    </div>
+  </div>
+
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-num">20+</div>
+      <div class="stat-label">Módulos funcionales</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">3</div>
+      <div class="stat-label">Tipos de usuario</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">100%</div>
+      <div class="stat-label">Seguro y cifrado</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- HOW IT WORKS -->
+<section class="how" id="como-funciona">
+  <div class="how-inner">
+    <div class="reveal">
+      <div class="section-tag">Proceso</div>
+      <h2>Tu proceso legal,<br/><em>simplificado</em></h2>
+      <p class="section-desc">
+        Desde el primer contacto hasta el cierre del caso, Legalia organiza cada etapa 
+        de tu proceso jurídico de forma clara y accesible.
+      </p>
+    </div>
+
+    <div class="how-steps reveal">
+      <div class="step">
+        <span class="step-num">01</span>
+        <div class="step-content">
+          <h3>Regístrate y crea tu perfil</h3>
+          <p>Clientes y abogados se registran de forma diferenciada. Los abogados pasan por una verificación de credenciales profesionales.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">02</span>
+        <div class="step-content">
+          <h3>Abre o recibe un caso legal</h3>
+          <p>El cliente describe su situación, adjunta documentos y selecciona un abogado por especialidad. El sistema puede asignar uno automáticamente.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">03</span>
+        <div class="step-content">
+          <h3>Comunícate y gestiona en tiempo real</h3>
+          <p>Chat seguro, notificaciones automáticas y agenda de citas para mantener a ambas partes siempre informadas.</p>
+        </div>
+      </div>
+      <div class="step">
+        <span class="step-num">04</span>
+        <div class="step-content">
+          <h3>Cierre y facturación automática</h3>
+          <p>Al finalizar el caso, se genera la factura digital, el cliente puede calificar al abogado y todo queda registrado en el historial.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- FEATURES -->
+<section id="funcionalidades">
+  <div class="reveal">
+    <div class="section-tag">Funcionalidades</div>
+    <h2>Todo lo que necesitas<br/>en <em>una sola plataforma</em></h2>
+  </div>
+
+  <div class="features-grid">
+    <div class="feature-card reveal">
+      <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+      </svg>
+      <h3>Chat Seguro</h3>
+      <p>Comunicación directa y cifrada entre cliente y abogado. Historial completo de conversaciones por caso.</p>
+      <span class="feature-tag">RF-11</span>
+    </div>
+
+    <div class="feature-card reveal">
+      <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+      </svg>
+      <h3>Gestión de Casos</h3>
+      <p>Creación, seguimiento y cierre de procesos legales con estados actualizables en tiempo real.</p>
+      <span class="feature-tag">RF-06 al 10</span>
+    </div>
+
+    <div class="feature-card reveal">
+      <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+      </svg>
+      <h3>Notificaciones en Tiempo Real</h3>
+      <p>Alertas automáticas por nuevos mensajes, cambios de estado y recordatorios de citas y plazos procesales.</p>
+      <span class="feature-tag">RF-12 al 14</span>
+    </div>
+
+    <div class="feature-card reveal">
+      <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+      </svg>
+      <h3>Pagos y Facturación</h3>
+      <p>Procesamiento seguro de pagos, generación automática de facturas digitales e historial de transacciones.</p>
+      <span class="feature-tag">RF-15 al 18</span>
+    </div>
+
+    <div class="feature-card reveal">
+      <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+      </svg>
+      <h3>Agenda de Citas</h3>
+      <p>Programación de reuniones virtuales o presenciales con sincronización de horarios disponibles del abogado.</p>
+      <span class="feature-tag">RF-13</span>
+    </div>
+
+    <div class="feature-card reveal">
+      <svg class="feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+      </svg>
+      <h3>Panel de Administración</h3>
+      <p>Gestión centralizada de usuarios, casos, estadísticas de uso y control total de la plataforma.</p>
+      <span class="feature-tag">RF-19 al 20</span>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ROLES -->
+<section class="roles" id="usuarios">
+  <div class="roles-header reveal">
+    <div class="section-tag">Usuarios</div>
+    <h2>Diseñado para <em>cada parte</em><br/>del proceso legal</h2>
+  </div>
+
+  <div class="roles-grid">
+    <div class="role-card reveal">
+      <span class="role-badge">Cliente</span>
+      <h3>Para quien necesita asesoría</h3>
+      <ul class="role-list">
+        <li>Registrarse y crear un perfil personal</li>
+        <li>Buscar abogados por especialidad o ubicación</li>
+        <li>Abrir y hacer seguimiento de casos legales</li>
+        <li>Comunicarse directamente con su abogado</li>
+        <li>Programar citas y gestionar documentos</li>
+        <li>Realizar pagos y consultar historial de facturas</li>
+        <li>Calificar al abogado al cerrar el caso</li>
+      </ul>
+    </div>
+
+    <div class="role-card reveal">
+      <span class="role-badge">Abogado</span>
+      <h3>Para quien brinda el servicio</h3>
+      <ul class="role-list">
+        <li>Registrarse con verificación de credenciales</li>
+        <li>Gestionar su portafolio de casos activos</li>
+        <li>Actualizar el estado y avances del proceso</li>
+        <li>Comunicarse de forma segura con clientes</li>
+        <li>Gestionar agenda de citas y disponibilidad</li>
+        <li>Subir y organizar documentos del expediente</li>
+        <li>Generar reportes detallados por caso</li>
+      </ul>
+    </div>
+
+    <div class="role-card reveal">
+      <span class="role-badge">Administrador</span>
+      <h3>Para quien gestiona la plataforma</h3>
+      <ul class="role-list">
+        <li>Verificar y activar cuentas de abogados</li>
+        <li>Supervisar todos los casos registrados</li>
+        <li>Gestionar usuarios y controlar accesos</li>
+        <li>Generar estadísticas de uso de la plataforma</li>
+        <li>Monitorear transacciones y facturación</li>
+        <li>Administrar reportes generales del sistema</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- MODULES -->
+<section>
+  <div class="reveal">
+    <div class="section-tag">Módulos del sistema</div>
+    <h2>Cinco módulos,<br/>un <em>ecosistema completo</em></h2>
+  </div>
+
+  <div class="modules-grid">
+    <div class="module-item reveal">
+      <div class="module-num">01</div>
+      <div class="module-name">Gestión de Usuarios</div>
+    </div>
+    <div class="module-item reveal">
+      <div class="module-num">02</div>
+      <div class="module-name">Casos y Procesos Legales</div>
+    </div>
+    <div class="module-item reveal">
+      <div class="module-num">03</div>
+      <div class="module-name">Comunicación y Notificaciones</div>
+    </div>
+    <div class="module-item reveal">
+      <div class="module-num">04</div>
+      <div class="module-name">Pagos y Facturación</div>
+    </div>
+    <div class="module-item reveal">
+      <div class="module-num">05</div>
+      <div class="module-name">Administración del Sistema</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- STACK -->
+<section class="stack" id="tecnologia">
+  <div class="reveal">
+    <div class="section-tag">Tecnología</div>
+    <h2>Construido con un<br/><em>stack robusto y moderno</em></h2>
+    <p class="section-desc">Arquitectura de tres capas: presentación, lógica de negocio y datos. Escalable, seguro y mantenible.</p>
+  </div>
+
+  <table class="stack-table reveal">
+    <thead>
+      <tr>
+        <th>Componente</th>
+        <th>Tecnología</th>
+        <th>Función</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td>Lenguaje de programación</td><td>Python</td><td>Lógica del sistema y procesamiento del servidor</td></tr>
+      <tr><td>Framework Backend</td><td>Flask</td><td>Rutas, autenticación y lógica de negocio</td></tr>
+      <tr><td>Frontend</td><td>HTML · CSS · JavaScript</td><td>Interfaz de usuario accesible y responsiva</td></tr>
+      <tr><td>Base de Datos</td><td>PostgreSQL / MySQL</td><td>Almacenamiento seguro de información legal</td></tr>
+      <tr><td>Control de Versiones</td><td>Git + GitHub</td><td>Trabajo colaborativo y seguimiento de cambios</td></tr>
+      <tr><td>Editor de Código</td><td>Visual Studio Code</td><td>Entorno de desarrollo integrado</td></tr>
+      <tr><td>Pasarela de Pagos</td><td>API de pagos</td><td>Procesamiento seguro de transacciones</td></tr>
+      <tr><td>Notificaciones</td><td>Servicios de correo</td><td>Alertas, recordatorios y confirmaciones</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<div class="divider"></div>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="cta-bg"></div>
+  <div class="reveal">
+    <div class="section-tag" style="justify-content:center; margin-bottom:1.5rem;">Únete a Legalia</div>
+    <h2>La justicia más <em>accesible</em><br/>empieza aquí.</h2>
+    <p>Regístrate como cliente para encontrar al abogado ideal, o como abogado para gestionar tus casos de forma más eficiente.</p>
+    <div class="cta-actions">
+      <a href="#" class="btn-primary">Soy cliente</a>
+      <a href="#" class="btn-outline">Soy abogado</a>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div>
+    <div class="footer-logo">LEGALIA</div>
+    <div class="footer-slogan" style="margin-top:.4rem;">Tecnología que transforma la justicia</div>
+  </div>
+  <div class="footer-right">
+    Universidad Libre · Ingeniería de Software III · 2026-1
+  </div>
+</footer>
+
+<script>
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), i * 80);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  reveals.forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
