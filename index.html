@@ -70,7 +70,15 @@
     ::-webkit-scrollbar-track { background: var(--scrollbar-bg); }
     ::-webkit-scrollbar-thumb { background: var(--gold-border); border-radius: 2px; }
 
-    /* ─── THEME TOGGLE ─── */
+    /* ─── ACCORDION ─── */
+  function toggleAccordion(btn) {
+    const item = btn.closest('.accordion-item');
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.accordion-item.open').forEach(i => i.classList.remove('open'));
+    if (!isOpen) item.classList.add('open');
+  }
+
+  /* ─── THEME TOGGLE ─── */
     .theme-toggle {
       width: 38px; height: 38px;
       border-radius: 50%;
@@ -107,23 +115,23 @@
     }
 
     .logo-icon {
-      width: 64px; height: 64px;
-      display:flex; align-items:center; justify-content:center;
-      border-radius: 50%;
+      width: 120px; height: 44px;
+      display: flex; align-items: center; justify-content: center;
       background: #0e0c09;
-      border: 1.5px solid var(--gold-border);
-      box-shadow: 0 0 12px rgba(184,148,42,0.2);
+      border: 1px solid var(--gold-border);
+      border-radius: 4px;
+      box-shadow: 0 0 10px rgba(184,148,42,0.15);
       transition: box-shadow .3s, border-color .3s;
       overflow: hidden;
+      padding: 2px 4px;
     }
     .logo-icon img {
-      width: 100%; height: 100%;
-      object-fit: cover;
-      border-radius: 50%;
+      width: auto; height: 100%;
+      object-fit: contain;
     }
     .logo:hover .logo-icon {
       border-color: var(--gold);
-      box-shadow: 0 0 20px rgba(184,148,42,0.4);
+      box-shadow: 0 0 18px rgba(184,148,42,0.35);
     }
 
     .logo-text {
@@ -923,6 +931,120 @@
     .reveal.visible { opacity: 1; transform: translateY(0); }
 
     /* ─── RESPONSIVE ─── */
+    /* ─── ACCORDION ─── */
+    .accordion { display: flex; flex-direction: column; gap: 0; }
+
+    .accordion-item {
+      border: 1px solid var(--gold-border);
+      margin-bottom: .6rem;
+      transition: border-color .3s, background .4s;
+      background: var(--card-bg);
+    }
+    .accordion-item.open { border-color: var(--gold); }
+
+    .accordion-btn {
+      width: 100%;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.4rem 2rem;
+      background: none;
+      border: none;
+      cursor: pointer;
+      text-align: left;
+      font-family: 'DM Sans', sans-serif;
+      gap: 1rem;
+      transition: background .3s;
+    }
+    .accordion-btn:hover { background: var(--gold-dim); }
+
+    .accordion-label {
+      display: flex; align-items: center; gap: 1rem;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.2rem;
+      font-weight: 400;
+      color: var(--text);
+      transition: color .4s;
+    }
+
+    .accordion-icon-wrap {
+      width: 36px; height: 36px;
+      border: 1px solid var(--gold-border);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      color: var(--gold);
+      transition: background .3s, border-color .3s;
+    }
+    .accordion-item.open .accordion-icon-wrap {
+      background: var(--gold-dim);
+      border-color: var(--gold);
+    }
+
+    .accordion-chevron {
+      color: var(--text-muted);
+      flex-shrink: 0;
+      transition: transform .35s ease, color .3s;
+    }
+    .accordion-item.open .accordion-chevron {
+      transform: rotate(180deg);
+      color: var(--gold);
+    }
+
+    .accordion-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height .45s ease, padding .45s ease;
+      padding: 0 2rem;
+    }
+    .accordion-item.open .accordion-body {
+      max-height: 1200px;
+      padding: 0 2rem 2rem;
+    }
+
+    /* ─── FOOTER UPDATED ─── */
+    footer {
+      padding: 2.5rem 5vw;
+      border-top: 1px solid var(--gold-border);
+      display: flex; align-items: flex-start; justify-content: space-between;
+      flex-wrap: wrap; gap: 2rem;
+      transition: border-color .4s;
+    }
+    .footer-left { flex-shrink: 0; }
+    .footer-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.2rem;
+      font-weight: 300;
+      letter-spacing: .18em;
+      color: var(--gold);
+    }
+    .footer-slogan {
+      font-size: .7rem;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-top: .35rem;
+    }
+    .footer-center { text-align: right; }
+    .footer-uni {
+      font-size: .75rem;
+      color: var(--text-muted);
+      margin-bottom: .8rem;
+    }
+    .footer-team {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .4rem .8rem;
+      justify-content: flex-end;
+      max-width: 480px;
+    }
+    .footer-team span {
+      font-size: .72rem;
+      color: var(--text-mid);
+      padding: .2rem .7rem;
+      border: 1px solid var(--gold-border);
+      white-space: nowrap;
+      transition: color .4s, border-color .4s;
+    }
+    .footer-team span:hover { border-color: var(--gold); color: var(--gold); }
+
     @media (max-width: 1000px) {
       .hero-top { grid-template-columns: 1fr; gap: 2.5rem; }
       .hero-cta-box { max-width: 540px; }
@@ -935,6 +1057,8 @@
       .modules-grid { grid-template-columns: repeat(3, 1fr); }
       .stats-strip { flex-wrap: wrap; }
       .stat-item { min-width: 33%; }
+      .footer-center { text-align: left; }
+      .footer-team { justify-content: flex-start; }
     }
     @media (max-width: 600px) {
       .features-grid { grid-template-columns: 1fr; }
@@ -942,6 +1066,9 @@
       .stat-item { min-width: 50%; }
       .nav-actions .btn-ghost { display: none; }
       .form-row { grid-template-columns: 1fr; }
+      .accordion-btn { padding: 1.2rem 1.2rem; }
+      .accordion-label { font-size: 1rem; }
+      .accordion-item.open .accordion-body { padding: 0 1.2rem 1.5rem; }
     }
   </style>
 </head>
@@ -1200,126 +1327,150 @@
 
 <div class="divider"></div>
 
-<!-- ROLES -->
-<section class="roles" id="usuarios">
-  <div class="roles-header reveal">
-    <div class="section-tag">Usuarios</div>
-    <h2>Diseñado para <em>cada parte</em><br/>del proceso legal</h2>
+<!-- ACCORDION INFO -->
+<section id="mas-info" style="padding: 5rem 5vw;">
+  <div class="reveal" style="margin-bottom:2rem;">
+    <div class="section-tag">Más información</div>
+    <h2>Conoce más sobre <em>Legalia</em></h2>
   </div>
 
-  <div class="roles-grid">
-    <div class="role-card reveal">
-      <span class="role-badge">Cliente</span>
-      <h3>Para quien necesita asesoría</h3>
-      <ul class="role-list">
-        <li>Registrarse y crear un perfil personal</li>
-        <li>Buscar abogados por especialidad o ubicación</li>
-        <li>Abrir y hacer seguimiento de casos legales</li>
-        <li>Comunicarse directamente con su abogado</li>
-        <li>Programar citas y gestionar documentos</li>
-        <li>Realizar pagos y consultar historial de facturas</li>
-        <li>Calificar al abogado al cerrar el caso</li>
-      </ul>
+  <div class="accordion reveal">
+
+    <!-- ACCORDION 1: Usuarios -->
+    <div class="accordion-item">
+      <button class="accordion-btn" onclick="toggleAccordion(this)">
+        <span class="accordion-label">
+          <span class="accordion-icon-wrap">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+          </span>
+          Diseñado para cada parte del proceso legal
+        </span>
+        <svg class="accordion-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="accordion-body">
+        <div class="roles-grid" style="margin-top:1.5rem;">
+          <div class="role-card">
+            <span class="role-badge">Cliente</span>
+            <h3>Para quien necesita asesoría</h3>
+            <ul class="role-list">
+              <li>Registrarse y crear un perfil personal</li>
+              <li>Buscar abogados por especialidad o ubicación</li>
+              <li>Abrir y hacer seguimiento de casos legales</li>
+              <li>Comunicarse directamente con su abogado</li>
+              <li>Programar citas y gestionar documentos</li>
+              <li>Realizar pagos y consultar historial de facturas</li>
+              <li>Calificar al abogado al cerrar el caso</li>
+            </ul>
+          </div>
+          <div class="role-card">
+            <span class="role-badge">Abogado</span>
+            <h3>Para quien brinda el servicio</h3>
+            <ul class="role-list">
+              <li>Registrarse con verificación de credenciales</li>
+              <li>Gestionar su portafolio de casos activos</li>
+              <li>Actualizar el estado y avances del proceso</li>
+              <li>Comunicarse de forma segura con clientes</li>
+              <li>Gestionar agenda de citas y disponibilidad</li>
+              <li>Subir y organizar documentos del expediente</li>
+              <li>Generar reportes detallados por caso</li>
+            </ul>
+          </div>
+          <div class="role-card">
+            <span class="role-badge">Administrador</span>
+            <h3>Para quien gestiona la plataforma</h3>
+            <ul class="role-list">
+              <li>Verificar y activar cuentas de abogados</li>
+              <li>Supervisar todos los casos registrados</li>
+              <li>Gestionar usuarios y controlar accesos</li>
+              <li>Generar estadísticas de uso de la plataforma</li>
+              <li>Monitorear transacciones y facturación</li>
+              <li>Administrar reportes generales del sistema</li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
-    <div class="role-card reveal">
-      <span class="role-badge">Abogado</span>
-      <h3>Para quien brinda el servicio</h3>
-      <ul class="role-list">
-        <li>Registrarse con verificación de credenciales</li>
-        <li>Gestionar su portafolio de casos activos</li>
-        <li>Actualizar el estado y avances del proceso</li>
-        <li>Comunicarse de forma segura con clientes</li>
-        <li>Gestionar agenda de citas y disponibilidad</li>
-        <li>Subir y organizar documentos del expediente</li>
-        <li>Generar reportes detallados por caso</li>
-      </ul>
+
+    <!-- ACCORDION 2: Módulos -->
+    <div class="accordion-item">
+      <button class="accordion-btn" onclick="toggleAccordion(this)">
+        <span class="accordion-label">
+          <span class="accordion-icon-wrap">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+          </span>
+          Cinco módulos, un ecosistema completo
+        </span>
+        <svg class="accordion-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="accordion-body">
+        <div class="modules-grid" style="margin-top:1.5rem;">
+          <div class="module-item"><div class="module-num">01</div><div class="module-name">Gestión de Usuarios</div></div>
+          <div class="module-item"><div class="module-num">02</div><div class="module-name">Casos y Procesos Legales</div></div>
+          <div class="module-item"><div class="module-num">03</div><div class="module-name">Comunicación y Notificaciones</div></div>
+          <div class="module-item"><div class="module-num">04</div><div class="module-name">Pagos y Facturación</div></div>
+          <div class="module-item"><div class="module-num">05</div><div class="module-name">Administración del Sistema</div></div>
+        </div>
+      </div>
     </div>
-    <div class="role-card reveal">
-      <span class="role-badge">Administrador</span>
-      <h3>Para quien gestiona la plataforma</h3>
-      <ul class="role-list">
-        <li>Verificar y activar cuentas de abogados</li>
-        <li>Supervisar todos los casos registrados</li>
-        <li>Gestionar usuarios y controlar accesos</li>
-        <li>Generar estadísticas de uso de la plataforma</li>
-        <li>Monitorear transacciones y facturación</li>
-        <li>Administrar reportes generales del sistema</li>
-      </ul>
+
+    <!-- ACCORDION 3: Stack -->
+    <div class="accordion-item">
+      <button class="accordion-btn" onclick="toggleAccordion(this)">
+        <span class="accordion-label">
+          <span class="accordion-icon-wrap">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+          </span>
+          Construido con un stack robusto y moderno
+        </span>
+        <svg class="accordion-chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="accordion-body">
+        <p style="font-size:.9rem; color:var(--text-muted); margin: 1.2rem 0 1.5rem; line-height:1.7;">
+          Arquitectura de tres capas: presentación, lógica de negocio y datos. Escalable, seguro y mantenible.
+        </p>
+        <table class="stack-table">
+          <thead>
+            <tr>
+              <th>Componente</th>
+              <th>Tecnología</th>
+              <th>Función</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Lenguaje de programación</td><td>Python</td><td>Lógica del sistema y procesamiento del servidor</td></tr>
+            <tr><td>Framework Backend</td><td>Flask</td><td>Rutas, autenticación y lógica de negocio</td></tr>
+            <tr><td>Frontend</td><td>HTML · CSS · JavaScript</td><td>Interfaz de usuario accesible y responsiva</td></tr>
+            <tr><td>Base de Datos</td><td>PostgreSQL / MySQL</td><td>Almacenamiento seguro de información legal</td></tr>
+            <tr><td>Control de Versiones</td><td>Git + GitHub</td><td>Trabajo colaborativo y seguimiento de cambios</td></tr>
+            <tr><td>Editor de Código</td><td>Visual Studio Code</td><td>Entorno de desarrollo integrado</td></tr>
+            <tr><td>Pasarela de Pagos</td><td>API de pagos</td><td>Procesamiento seguro de transacciones</td></tr>
+            <tr><td>Notificaciones</td><td>Servicios de correo</td><td>Alertas, recordatorios y confirmaciones</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
+
   </div>
 </section>
 
 <div class="divider"></div>
-
-<!-- MODULES -->
-<section>
-  <div class="reveal">
-    <div class="section-tag">Módulos del sistema</div>
-    <h2>Cinco módulos,<br/>un <em>ecosistema completo</em></h2>
-  </div>
-  <div class="modules-grid">
-    <div class="module-item reveal"><div class="module-num">01</div><div class="module-name">Gestión de Usuarios</div></div>
-    <div class="module-item reveal"><div class="module-num">02</div><div class="module-name">Casos y Procesos Legales</div></div>
-    <div class="module-item reveal"><div class="module-num">03</div><div class="module-name">Comunicación y Notificaciones</div></div>
-    <div class="module-item reveal"><div class="module-num">04</div><div class="module-name">Pagos y Facturación</div></div>
-    <div class="module-item reveal"><div class="module-num">05</div><div class="module-name">Administración del Sistema</div></div>
-  </div>
-</section>
-
-<div class="divider"></div>
-
-<!-- STACK -->
-<section class="stack" id="tecnologia">
-  <div class="reveal">
-    <div class="section-tag">Tecnología</div>
-    <h2>Construido con un<br/><em>stack robusto y moderno</em></h2>
-    <p class="section-desc">Arquitectura de tres capas: presentación, lógica de negocio y datos. Escalable, seguro y mantenible.</p>
-  </div>
-  <table class="stack-table reveal">
-    <thead>
-      <tr>
-        <th>Componente</th>
-        <th>Tecnología</th>
-        <th>Función</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr><td>Lenguaje de programación</td><td>Python</td><td>Lógica del sistema y procesamiento del servidor</td></tr>
-      <tr><td>Framework Backend</td><td>Flask</td><td>Rutas, autenticación y lógica de negocio</td></tr>
-      <tr><td>Frontend</td><td>HTML · CSS · JavaScript</td><td>Interfaz de usuario accesible y responsiva</td></tr>
-      <tr><td>Base de Datos</td><td>PostgreSQL / MySQL</td><td>Almacenamiento seguro de información legal</td></tr>
-      <tr><td>Control de Versiones</td><td>Git + GitHub</td><td>Trabajo colaborativo y seguimiento de cambios</td></tr>
-      <tr><td>Editor de Código</td><td>Visual Studio Code</td><td>Entorno de desarrollo integrado</td></tr>
-      <tr><td>Pasarela de Pagos</td><td>API de pagos</td><td>Procesamiento seguro de transacciones</td></tr>
-      <tr><td>Notificaciones</td><td>Servicios de correo</td><td>Alertas, recordatorios y confirmaciones</td></tr>
-    </tbody>
-  </table>
-</section>
-
-<div class="divider"></div>
-
-<!-- CTA -->
-<section class="cta-section">
-  <div class="cta-bg"></div>
-  <div class="reveal">
-    <div class="section-tag" style="justify-content:center; margin-bottom:1.5rem;">Únete a Legalia</div>
-    <h2>La justicia más <em>accesible</em><br/>empieza aquí.</h2>
-    <p>Regístrate como cliente para encontrar al abogado ideal, o como abogado para gestionar tus casos de forma más eficiente.</p>
-    <div class="cta-actions">
-      <button class="btn-primary" onclick="openModal('register','cliente')">Soy cliente</button>
-      <button class="btn-outline" onclick="openModal('register','abogado')">Soy abogado</button>
-    </div>
-  </div>
-</section>
 
 <!-- FOOTER -->
 <footer>
-  <div>
+  <div class="footer-left">
     <div class="footer-logo">LEGALIA</div>
-    <div class="footer-slogan" style="margin-top:.4rem;">Tecnología que transforma la justicia</div>
+    <div class="footer-slogan">Tecnología que transforma la justicia</div>
   </div>
-  <div class="footer-right">
-    Universidad Libre · Ingeniería de Software III · 2026-1
+  <div class="footer-center">
+    <div class="footer-uni">Universidad Libre · Ingeniería de Software III · 2026-1</div>
+    <div class="footer-team">
+      <span>Ana Sofía Lizarazo</span>
+      <span>Laura Sofía Angulo</span>
+      <span>Brianna Estefanía Serrato</span>
+      <span>Laura Sofía Ayala</span>
+      <span>Luna Sofía Gaitán</span>
+      <span>Mariana Gutiérrez</span>
+    </div>
   </div>
 </footer>
 
