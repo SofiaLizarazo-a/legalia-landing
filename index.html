@@ -71,12 +71,6 @@
     ::-webkit-scrollbar-thumb { background: var(--gold-border); border-radius: 2px; }
 
     /* ─── ACCORDION ─── */
-  function toggleAccordion(btn) {
-    const item = btn.closest('.accordion-item');
-    const isOpen = item.classList.contains('open');
-    document.querySelectorAll('.accordion-item.open').forEach(i => i.classList.remove('open'));
-    if (!isOpen) item.classList.add('open');
-  }
 
   /* ─── THEME TOGGLE ─── */
     .theme-toggle {
@@ -1568,6 +1562,14 @@
 </div>
 
 <script>
+  /* ─── ACCORDION ─── */
+  function toggleAccordion(btn) {
+    const item = btn.closest('.accordion-item');
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.accordion-item.open').forEach(i => i.classList.remove('open'));
+    if (!isOpen) item.classList.add('open');
+  }
+
   /* ─── SCROLL REVEAL ─── */
   const reveals = document.querySelectorAll('.reveal');
   const observer = new IntersectionObserver((entries) => {
