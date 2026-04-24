@@ -1,279 +1,262 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="dark">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Legalia AI</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Legalia AI</title>
 
-  <!-- Fuente elegante -->
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
 
-  <!-- HLS video -->
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
 
-  <style>
-    /* ===== RESET ===== */
-    *{
-      margin:0;
-      padding:0;
-      box-sizing:border-box;
-    }
+<style>
 
-    body{
-      font-family:'Inter', sans-serif;
-      background:#0e0c09;
-      color:white;
-    }
+/* ===== VARIABLES ===== */
+:root{
+  --bg:#0e0c09;
+  --text:#ffffff;
+  --gold:#c9a84c;
+  --gold-soft:rgba(201,168,76,0.2);
+}
 
-    :root{
-      --gold:#c9a84c;
-      --gold-border:rgba(201,168,76,0.3);
-      --bg:#0e0c09;
-      --white:#ffffff;
-    }
+[data-theme="light"]{
+  --bg:#f5f5f5;
+  --text:#111;
+  --gold:#c9a84c;
+}
 
-    /* ===== NAVBAR SIMPLE ===== */
-    nav{
-      position:fixed;
-      width:100%;
-      top:0;
-      left:0;
-      padding:20px 40px;
-      display:flex;
-      justify-content:space-between;
-      z-index:100;
-      background:rgba(0,0,0,0.3);
-      backdrop-filter:blur(10px);
-    }
+/* ===== BASE ===== */
+*{margin:0;padding:0;box-sizing:border-box;}
 
-    nav h2{
-      font-family:'Cormorant Garamond', serif;
-      font-weight:400;
-      letter-spacing:2px;
-    }
+body{
+  font-family:'Inter', sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  transition:.3s;
+}
 
-    /* ===== HERO ===== */
-    .hero{
-      position:relative;
-      height:100vh;
-      overflow:hidden;
-      display:flex;
-      align-items:center;
-    }
+/* ===== NAV ===== */
+nav{
+  position:fixed;
+  width:100%;
+  top:0;
+  padding:20px 40px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  backdrop-filter:blur(10px);
+  z-index:100;
+}
 
-    .hero-video{
-      position:absolute;
-      z-index:0;
-      height:100%;
-      width:auto;
-      object-fit:cover;
-      transform:scale(1.2);
-      transform-origin:left;
-      margin-left:200px;
-      opacity:0.35;
-    }
+/* LOGO */
+.logo{
+  height:40px;
+}
 
-    .hero-overlay{
-      position:absolute;
-      inset:0;
-      background:radial-gradient(circle at 60% 50%, rgba(201,168,76,0.08), transparent 70%);
-      z-index:5;
-    }
+/* BOTÓN TEMA */
+.theme-toggle{
+  cursor:pointer;
+  padding:8px 16px;
+  border-radius:20px;
+  border:1px solid var(--gold-soft);
+  color:var(--gold);
+}
 
-    .hero-gradient{
-      position:absolute;
-      bottom:0;
-      width:100%;
-      height:160px;
-      background:linear-gradient(to top,var(--bg),transparent);
-      z-index:10;
-    }
+/* ===== HERO ===== */
+.hero{
+  height:100vh;
+  display:flex;
+  align-items:center;
+  position:relative;
+  overflow:hidden;
+}
 
-    .hero-inner{
-      position:relative;
-      z-index:20;
-      max-width:1200px;
-      padding:0 40px;
-    }
+.hero-video{
+  position:absolute;
+  height:100%;
+  transform:scale(1.2);
+  margin-left:200px;
+  opacity:.35;
+}
 
-    .hero-content{
-      display:flex;
-      flex-direction:column;
-      gap:24px;
-    }
+.hero-overlay{
+  position:absolute;
+  inset:0;
+  background:radial-gradient(circle at 60% 50%, rgba(201,168,76,0.08), transparent 70%);
+}
 
-    /* BADGE */
-    .hero-badge{
-      border:1px solid var(--gold-border);
-      backdrop-filter:blur(10px);
-      padding:6px 16px;
-      border-radius:999px;
-      font-size:.7rem;
-      letter-spacing:.2em;
-      text-transform:uppercase;
-      color:var(--gold);
-      width:fit-content;
-    }
+.hero-gradient{
+  position:absolute;
+  bottom:0;
+  height:160px;
+  width:100%;
+  background:linear-gradient(to top,var(--bg),transparent);
+}
 
-    /* TITLE */
-    .hero-title{
-      font-family:'Cormorant Garamond', serif;
-      font-size:clamp(3rem,5vw,5rem);
-      font-weight:300;
-      line-height:1.1;
-    }
+.hero-content{
+  position:relative;
+  z-index:10;
+  padding:0 40px;
+  max-width:1200px;
+  display:flex;
+  flex-direction:column;
+  gap:24px;
+}
 
-    .hero-title .gold{
-      color:var(--gold);
-    }
+/* BADGE */
+.badge{
+  border:1px solid var(--gold-soft);
+  padding:6px 16px;
+  border-radius:999px;
+  color:var(--gold);
+  font-size:.7rem;
+  letter-spacing:.2em;
+}
 
-    .italic{
-      font-style:italic;
-    }
+/* TITLE */
+h1{
+  font-family:'Cormorant Garamond', serif;
+  font-size:clamp(3rem,5vw,5rem);
+  font-weight:300;
+}
 
-    /* SUB */
-    .hero-desc{
-      color:rgba(255,255,255,0.75);
-      font-size:18px;
-      max-width:500px;
-      line-height:1.6;
-    }
+.gold{color:var(--gold);}
+.italic{font-style:italic;}
 
-    /* BUTTONS */
-    .hero-actions{
-      display:flex;
-      gap:16px;
-      flex-wrap:wrap;
-    }
+/* TEXT */
+p{
+  max-width:500px;
+  opacity:.8;
+}
 
-    .btn-primary{
-      background:var(--gold);
-      color:black;
-      padding:12px 22px;
-      border-radius:999px;
-      text-decoration:none;
-      font-weight:500;
-    }
+/* BUTTONS */
+.buttons{
+  display:flex;
+  gap:16px;
+}
 
-    .btn-outline{
-      border:1px solid var(--gold-border);
-      color:var(--gold);
-      padding:12px 28px;
-      border-radius:999px;
-      background:transparent;
-      cursor:pointer;
-    }
+.btn{
+  padding:12px 22px;
+  border-radius:999px;
+  text-decoration:none;
+}
 
-    /* ===== ANIMATIONS ===== */
-    .blur-in{
-      opacity:0;
-      transform:translateY(20px);
-      filter:blur(10px);
-      animation:blurIn 0.6s forwards;
-    }
+.primary{
+  background:var(--gold);
+  color:black;
+}
 
-    .delay-1{ animation-delay:0.4s; }
-    .delay-2{ animation-delay:0.6s; }
+.secondary{
+  border:1px solid var(--gold-soft);
+  color:var(--gold);
+}
 
-    @keyframes blurIn{
-      to{
-        opacity:1;
-        transform:translateY(0);
-        filter:blur(0);
-      }
-    }
+/* ===== ANIMACIONES ===== */
+.word{
+  display:inline-block;
+  opacity:0;
+  transform:translateY(40px);
+  animation:wordIn .6s forwards;
+}
 
-    .word{
-      display:inline-block;
-      opacity:0;
-      transform:translateY(40px);
-      animation:wordIn 0.6s forwards;
-    }
+@keyframes wordIn{
+  to{opacity:1;transform:translateY(0);}
+}
 
-    @keyframes wordIn{
-      to{
-        opacity:1;
-        transform:translateY(0);
-      }
-    }
+.blur{
+  opacity:0;
+  transform:translateY(20px);
+  animation:fade .6s forwards;
+}
 
-    /* ===== RESPONSIVE ===== */
-    @media(max-width:768px){
-      .hero-inner{
-        padding:0 20px;
-      }
+@keyframes fade{
+  to{opacity:1;transform:translateY(0);}
+}
 
-      nav{
-        padding:15px 20px;
-      }
-    }
+/* ===== SECTION EXTRA ===== */
+.section{
+  padding:100px 40px;
+}
 
-  </style>
+</style>
 </head>
 
 <body>
 
 <!-- NAV -->
 <nav>
-  <h2>Legalia</h2>
+  <!-- USA TU LOGO PNG SIN FONDO -->
+  <img src="logo.png" class="logo">
+
+  <button class="theme-toggle" onclick="toggleTheme()">
+    Cambiar tema
+  </button>
 </nav>
 
 <!-- HERO -->
 <section class="hero">
 
-  <video class="hero-video" autoplay muted loop playsinline></video>
+<video class="hero-video" autoplay muted loop playsinline></video>
 
-  <div class="hero-overlay"></div>
-  <div class="hero-gradient"></div>
+<div class="hero-overlay"></div>
+<div class="hero-gradient"></div>
 
-  <div class="hero-inner">
-    <div class="hero-content">
+<div class="hero-content">
 
-      <div class="hero-badge blur-in">
-        ✦ AI Legal Intelligence
-      </div>
+<div class="badge blur">✦ AI Legal Intelligence</div>
 
-      <h1 class="hero-title">
-        <span class="word">Transforma</span>
-        <span class="word">tu</span>
-        <span class="word">firma</span>
-        <span class="word">con</span>
-        <span class="word gold">IA</span><br>
+<h1>
+<span class="word">Transforma</span>
+<span class="word">tu</span>
+<span class="word">firma</span>
+<span class="word">con</span>
+<span class="word gold">IA</span><br>
 
-        <span class="word">para</span>
-        <span class="word">tu</span>
-        <span class="word italic">negocio.</span>
-      </h1>
+<span class="word">para</span>
+<span class="word">tu</span>
+<span class="word italic">negocio.</span>
+</h1>
 
-      <p class="hero-desc blur-in delay-1">
-        Automatiza procesos legales, analiza datos críticos y toma decisiones estratégicas con precisión.
-      </p>
+<p class="blur">
+Automatiza procesos legales, analiza datos y toma decisiones estratégicas con precisión.
+</p>
 
-      <div class="hero-actions blur-in delay-2">
-        <a href="#" class="btn-primary">Agendar llamada →</a>
-        <button class="btn-outline">Conocer más</button>
-      </div>
+<div class="buttons blur">
+<a href="#" class="btn primary">Agendar llamada →</a>
+<a href="#" class="btn secondary">Conocer más</a>
+</div>
 
-    </div>
-  </div>
+</div>
+</section>
 
+<!-- SECCIÓN EXTRA (ejemplo para que no pierdas info futura) -->
+<section class="section">
+<h2>Sobre Legalia</h2>
+<p>Aquí puedes seguir agregando TODO lo que ya tenías.</p>
 </section>
 
 <script>
-  // animación palabras
-  const words = document.querySelectorAll(".word");
-  words.forEach((word, i) => {
-    word.style.animationDelay = (i * 0.08) + "s";
-  });
 
-  // video HLS
-  const video = document.querySelector(".hero-video");
+/* ANIMACIÓN PALABRAS */
+document.querySelectorAll(".word").forEach((w,i)=>{
+  w.style.animationDelay=(i*0.08)+"s";
+});
 
-  if (Hls.isSupported()) {
-    const hls = new Hls();
-    hls.loadSource("https://stream.mux.com/s8pMcOvMQXc4GD6AX4e1o01xFogFxipmuKltNfSYza0200.m3u8");
-    hls.attachMedia(video);
-  }
+/* VIDEO HLS */
+const video=document.querySelector(".hero-video");
+if(Hls.isSupported()){
+  const hls=new Hls();
+  hls.loadSource("https://stream.mux.com/s8pMcOvMQXc4GD6AX4e1o01xFogFxipmuKltNfSYza0200.m3u8");
+  hls.attachMedia(video);
+}
+
+/* MODO OSCURO / CLARO */
+function toggleTheme(){
+  const html=document.documentElement;
+  const current=html.getAttribute("data-theme");
+  html.setAttribute("data-theme", current==="dark"?"light":"dark");
+}
+
 </script>
 
 </body>
