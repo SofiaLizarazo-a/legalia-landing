@@ -439,46 +439,110 @@
     document.getElementById('lawyer-fields').style.display=type==='abogado'?'block':'none';
   }
 
+  /* ── Base de datos simulada en memoria ── */
+  const usuariosDB = {};
+
+  /* ── Validar formato de correo electrónico ── */
+  function esEmailValido(email){
+    return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
+  }
+
   /* ── Obtener tipo de usuario activo en login ── */
   function getLoginType(){
     const active=document.querySelector('#loginModal .modal-tab.active');
     if(!active) return 'cliente';
-    return active.textContent.trim().toLowerCase().includes('admin')?'admin':
-           active.textContent.trim().toLowerCase().includes('abogado')?'abogado':'cliente';
+    const t=active.textContent.trim().toLowerCase();
+    return t.includes('admin')?'administrador': t.includes('abogado')?'abogado':'cliente';
   }
 
-  /* ── Acción iniciar sesión ── */
-  function doLogin(){
-    const email=document.querySelector('#loginModal input[type="email"]').value.trim();
-    const pass=document.querySelector('#loginModal input[type="password"]').value.trim();
-    if(!email||!pass){showModalError('loginModal','Por favor ingresa tu correo y contraseña.');return;}
-    const type=getLoginType();
-    closeModal('loginModal');
-    showDashboard(type, email.split('@')[0]);
-  }
-
-  /* ── Acción registrarse ── */
-  function doRegister(){
-    const nombre=document.querySelector('#registerModal input[placeholder="Tu nombre"]').value.trim();
-    const apellido=document.querySelector('#registerModal input[placeholder="Tu apellido"]').value.trim();
-    const email=document.querySelector('#registerModal input[type="email"]').value.trim();
-    const pass=document.querySelector('#registerModal input[type="password"]').value.trim();
-    if(!nombre||!apellido||!email||!pass){showModalError('registerModal','Por favor completa todos los campos.');return;}
-    const type=document.querySelector('.user-type-btn.active').id.replace('reg-','');
-    closeModal('registerModal');
-    showDashboard(type, nombre);
-  }
-
-  /* ── Mostrar error dentro del modal ── */
+  /* ── Mostrar / limpiar error dentro del modal ── */
   function showModalError(modalId, msg){
     let err=document.querySelector('#'+modalId+' .modal-error');
     if(!err){
       err=document.createElement('p');
       err.className='modal-error';
-      err.style.cssText='color:#c0392b;font-size:.78rem;margin-top:.5rem;text-align:center;';
+      err.style.cssText='color:#c0392b;font-size:.78rem;margin-top:.6rem;text-align:center;padding:.5rem;border:1px solid rgba(192,57,43,.3);background:rgba(192,57,43,.06);';
       document.querySelector('#'+modalId+' .modal-submit').before(err);
     }
     err.textContent=msg;
+    err.style.display='block';
+  }
+  function clearModalError(modalId){
+    const err=document.querySelector('#'+modalId+' .modal-error');
+    if(err) err.style.display='none';
+  }
+
+  /* ── Acción INICIAR SESIÓN ── */
+  function doLogin(){
+    clearModalError('loginModal');
+    const email=document.querySelector('#loginModal input[type="email"]').value.trim();
+    const pass=document.querySelector('#loginModal input[type="password"]').value.trim();
+    const role=getLoginType();
+
+    // 1. Campos vacíos
+    if(!email && !pass){showModalError('loginModal','Por favor ingresa tu correo y contraseña.');return;}
+    if(!email){showModalError('loginModal','El correo electrónico es obligatorio.');return;}
+    if(!pass){showModalError('loginModal','La contraseña es obligatoria.');return;}
+
+    // 2. Formato de correo
+    if(!esEmailValido(email)){showModalError('loginModal','Ingresa un correo electrónico válido (ej: nombre@dominio.com).');return;}
+
+    // 3. Usuario existe en la DB
+    const key=email.toLowerCase()+'_'+role;
+    if(!usuariosDB[key]){
+      showModalError('loginModal','No existe una cuenta con ese correo para el perfil seleccionado. ¿Ya te registraste?');
+      return;
+    }
+
+    // 4. Contraseña correcta
+    if(usuariosDB[key].password !== pass){
+      showModalError('loginModal','La contraseña es incorrecta. Intenta de nuevo.');
+      return;
+    }
+
+    // ✓ Todo OK
+    closeModal('loginModal');
+    showDashboard(role, usuariosDB[key].nombre);
+  }
+
+  /* ── Acción REGISTRARSE ── */
+  function doRegister(){
+    clearModalError('registerModal');
+    const nombre=document.querySelector('#registerModal input[placeholder="Tu nombre"]').value.trim();
+    const apellido=document.querySelector('#registerModal input[placeholder="Tu apellido"]').value.trim();
+    const email=document.querySelector('#registerModal input[type="email"]').value.trim();
+    const pass=document.querySelector('#registerModal input[type="password"]').value.trim();
+    const role=document.querySelector('.user-type-btn.active').id.replace('reg-','');
+
+    // 1. Campos vacíos
+    if(!nombre){showModalError('registerModal','El nombre es obligatorio.');return;}
+    if(!apellido){showModalError('registerModal','El apellido es obligatorio.');return;}
+    if(!email){showModalError('registerModal','El correo electrónico es obligatorio.');return;}
+    if(!pass){showModalError('registerModal','La contraseña es obligatoria.');return;}
+
+    // 2. Formato de correo
+    if(!esEmailValido(email)){showModalError('registerModal','Ingresa un correo electrónico válido (ej: nombre@dominio.com).');return;}
+
+    // 3. Mínimo de caracteres en contraseña
+    if(pass.length < 8){showModalError('registerModal','La contraseña debe tener al menos 8 caracteres.');return;}
+
+    // 4. Campos extra para abogado
+    if(role==='abogado'){
+      const tarjeta=document.querySelector('#registerModal input[placeholder="Número de tarjeta profesional"]').value.trim();
+      const especialidad=document.querySelector('#registerModal select').value;
+      if(!tarjeta){showModalError('registerModal','El número de tarjeta profesional es obligatorio.');return;}
+      if(!especialidad){showModalError('registerModal','Selecciona tu especialidad.');return;}
+    }
+
+    // 5. Correo ya registrado para ese rol
+    const key=email.toLowerCase()+'_'+role;
+    if(usuariosDB[key]){showModalError('registerModal','Ya existe una cuenta con ese correo para este perfil.');return;}
+
+    // ✓ Guardar usuario
+    usuariosDB[key]={ nombre, apellido, email:email.toLowerCase(), password:pass, role };
+
+    closeModal('registerModal');
+    showDashboard(role, nombre);
   }
 
   /* ── Dashboard ── */
