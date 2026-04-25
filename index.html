@@ -414,9 +414,22 @@
   });
 
   /* ── Modals ── */
-  function openModal(type,userType){
-    if(type==='login'){document.getElementById('loginModal').classList.add('open')}
-    else{document.getElementById('registerModal').classList.add('open');if(userType)setRegType(userType)}
+  function openModal(type,userType,fromRegister){
+    if(type==='login'){
+      document.getElementById('loginModal').classList.add('open');
+      if(!fromRegister){
+        document.querySelector('#loginModal input[type="email"]').value='';
+        document.querySelector('#loginModal input[type="password"]').value='';
+        const ok=document.querySelector('#loginModal .modal-ok');
+        if(ok) ok.style.display='none';
+        clearModalError('loginModal');
+        document.querySelectorAll('#loginModal .modal-tab').forEach((t,i)=>{t.classList.toggle('active',i===0);});
+      }
+    } else {
+      document.getElementById('registerModal').classList.add('open');
+      if(userType) setRegType(userType);
+      clearModalError('registerModal');
+    }
     document.body.style.overflow='hidden';
   }
   function closeModal(id){
@@ -542,7 +555,41 @@
     usuariosDB[key]={ nombre, apellido, email:email.toLowerCase(), password:pass, role };
 
     closeModal('registerModal');
-    showDashboard(role, nombre);
+
+    // Limpiar campos del registro
+    document.querySelector('#registerModal input[placeholder="Tu nombre"]').value='';
+    document.querySelector('#registerModal input[placeholder="Tu apellido"]').value='';
+    document.querySelector('#registerModal input[type="email"]').value='';
+    document.querySelector('#registerModal input[type="password"]').value='';
+
+    // Abrir login con mensaje de éxito y pre-llenar el correo
+    openModal('login', null, true);
+
+    // Pre-seleccionar el tab del rol correcto en login
+    const tabs=document.querySelectorAll('#loginModal .modal-tab');
+    tabs.forEach(t=>t.classList.remove('active'));
+    tabs.forEach(t=>{
+      const txt=t.textContent.trim().toLowerCase();
+      if(role==='cliente'&&txt==='cliente') t.classList.add('active');
+      else if(role==='abogado'&&txt==='abogado') t.classList.add('active');
+      else if(role==='abogado'&&txt.includes('abogado')) t.classList.add('active');
+      else if((role==='administrador'||role==='admin')&&txt.includes('admin')) t.classList.add('active');
+    });
+
+    // Pre-llenar email y mostrar mensaje de bienvenida
+    document.querySelector('#loginModal input[type="email"]').value=email;
+    document.querySelector('#loginModal input[type="password"]').value='';
+
+    // Mostrar mensaje de éxito en el modal de login
+    let ok=document.querySelector('#loginModal .modal-ok');
+    if(!ok){
+      ok=document.createElement('p');
+      ok.className='modal-ok';
+      ok.style.cssText='color:#27ae60;font-size:.78rem;margin-bottom:.8rem;text-align:center;padding:.5rem;border:1px solid rgba(39,174,96,.3);background:rgba(39,174,96,.06);';
+      document.querySelector('#loginModal .form-field').before(ok);
+    }
+    ok.textContent='✓ Cuenta creada exitosamente. Ingresa tu contraseña para continuar.';
+    ok.style.display='block';
   }
 
   /* ── Dashboard ── */
