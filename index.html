@@ -358,7 +358,7 @@
     <div class="form-field"><label>Correo electrónico</label><input type="email" placeholder="tucorreo@ejemplo.com"/></div>
     <div class="form-field"><label>Contraseña</label><input type="password" placeholder="••••••••"/></div>
     <div style="text-align:right;margin-bottom:.5rem;"><button style="background:none;border:none;font-size:.78rem;color:var(--gold);cursor:pointer;font-family:inherit;">¿Olvidaste tu contraseña?</button></div>
-    <button class="modal-submit">Iniciar sesión</button>
+    <button class="modal-submit" onclick="doLogin()">Iniciar sesión</button>
     <p class="modal-footer-text">¿No tienes cuenta? <button onclick="closeModal('loginModal');openModal('register')">Regístrate aquí</button></p>
   </div>
 </div>
@@ -384,7 +384,7 @@
       <div class="form-field"><label>Tarjeta profesional</label><input type="text" placeholder="Número de tarjeta profesional"/></div>
       <div class="form-field"><label>Especialidad</label><select><option value="">Selecciona tu especialidad</option><option>Derecho Civil</option><option>Derecho Penal</option><option>Derecho Laboral</option><option>Derecho Comercial</option><option>Derecho de Familia</option><option>Derecho Administrativo</option></select></div>
     </div>
-    <button class="modal-submit">Crear cuenta</button>
+    <button class="modal-submit" onclick="doRegister()">Crear cuenta</button>
     <p class="modal-footer-text">¿Ya tienes cuenta? <button onclick="closeModal('registerModal');openModal('login')">Inicia sesión</button></p>
   </div>
 </div>
@@ -395,8 +395,15 @@
 </button>
 
 <script>
+  /* ── Accordion ── */
   function toggleAccordion(btn){const item=btn.closest('.accordion-item');const isOpen=item.classList.contains('open');document.querySelectorAll('.accordion-item.open').forEach(i=>i.classList.remove('open'));if(!isOpen)item.classList.add('open')}
-  const reveals=document.querySelectorAll('.reveal');const observer=new IntersectionObserver((entries)=>{entries.forEach((entry,i)=>{if(entry.isIntersecting){setTimeout(()=>entry.target.classList.add('visible'),i*80);observer.unobserve(entry.target)}})},{threshold:0.12});reveals.forEach(el=>observer.observe(el));
+
+  /* ── Reveal on scroll ── */
+  const reveals=document.querySelectorAll('.reveal');
+  const observer=new IntersectionObserver((entries)=>{entries.forEach((entry,i)=>{if(entry.isIntersecting){setTimeout(()=>entry.target.classList.add('visible'),i*80);observer.unobserve(entry.target)}})},{threshold:0.12});
+  reveals.forEach(el=>observer.observe(el));
+
+  /* ── Theme ── */
   const rootEl=document.documentElement;
   try{const saved=localStorage.getItem('legalia-theme')||'light';rootEl.setAttribute('data-theme',saved);}catch(e){rootEl.setAttribute('data-theme','light');}
   document.getElementById('themeToggle').addEventListener('click',function(){
@@ -405,12 +412,193 @@
     rootEl.setAttribute('data-theme',next);
     try{localStorage.setItem('legalia-theme',next);}catch(e){}
   });
-  function openModal(type,userType){if(type==='login'){document.getElementById('loginModal').classList.add('open')}else{document.getElementById('registerModal').classList.add('open');if(userType)setRegType(userType)}document.body.style.overflow='hidden'}
-  function closeModal(id){document.getElementById(id).classList.remove('open');document.body.style.overflow=''}
-  document.querySelectorAll('.modal-overlay').forEach(overlay=>{overlay.addEventListener('click',(e)=>{if(e.target===overlay)closeModal(overlay.id)})});
-  document.addEventListener('keydown',(e)=>{if(e.key==='Escape'){document.querySelectorAll('.modal-overlay.open').forEach(m=>closeModal(m.id))}});
-  function setLoginType(type,btn){document.querySelectorAll('#loginModal .modal-tab').forEach(t=>t.classList.remove('active'));btn.classList.add('active')}
-  function setRegType(type){document.querySelectorAll('.user-type-btn').forEach(b=>b.classList.remove('active'));document.getElementById('reg-'+type).classList.add('active');document.getElementById('lawyer-fields').style.display=type==='abogado'?'block':'none'}
+
+  /* ── Modals ── */
+  function openModal(type,userType){
+    if(type==='login'){document.getElementById('loginModal').classList.add('open')}
+    else{document.getElementById('registerModal').classList.add('open');if(userType)setRegType(userType)}
+    document.body.style.overflow='hidden';
+  }
+  function closeModal(id){
+    document.getElementById(id).classList.remove('open');
+    document.body.style.overflow='';
+  }
+  document.querySelectorAll('.modal-overlay').forEach(overlay=>{
+    overlay.addEventListener('click',(e)=>{if(e.target===overlay)closeModal(overlay.id)});
+  });
+  document.addEventListener('keydown',(e)=>{
+    if(e.key==='Escape'){document.querySelectorAll('.modal-overlay.open').forEach(m=>closeModal(m.id))}
+  });
+  function setLoginType(type,btn){
+    document.querySelectorAll('#loginModal .modal-tab').forEach(t=>t.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  function setRegType(type){
+    document.querySelectorAll('.user-type-btn').forEach(b=>b.classList.remove('active'));
+    document.getElementById('reg-'+type).classList.add('active');
+    document.getElementById('lawyer-fields').style.display=type==='abogado'?'block':'none';
+  }
+
+  /* ── Obtener tipo de usuario activo en login ── */
+  function getLoginType(){
+    const active=document.querySelector('#loginModal .modal-tab.active');
+    if(!active) return 'cliente';
+    return active.textContent.trim().toLowerCase().includes('admin')?'admin':
+           active.textContent.trim().toLowerCase().includes('abogado')?'abogado':'cliente';
+  }
+
+  /* ── Acción iniciar sesión ── */
+  function doLogin(){
+    const email=document.querySelector('#loginModal input[type="email"]').value.trim();
+    const pass=document.querySelector('#loginModal input[type="password"]').value.trim();
+    if(!email||!pass){showModalError('loginModal','Por favor ingresa tu correo y contraseña.');return;}
+    const type=getLoginType();
+    closeModal('loginModal');
+    showDashboard(type, email.split('@')[0]);
+  }
+
+  /* ── Acción registrarse ── */
+  function doRegister(){
+    const nombre=document.querySelector('#registerModal input[placeholder="Tu nombre"]').value.trim();
+    const apellido=document.querySelector('#registerModal input[placeholder="Tu apellido"]').value.trim();
+    const email=document.querySelector('#registerModal input[type="email"]').value.trim();
+    const pass=document.querySelector('#registerModal input[type="password"]').value.trim();
+    if(!nombre||!apellido||!email||!pass){showModalError('registerModal','Por favor completa todos los campos.');return;}
+    const type=document.querySelector('.user-type-btn.active').id.replace('reg-','');
+    closeModal('registerModal');
+    showDashboard(type, nombre);
+  }
+
+  /* ── Mostrar error dentro del modal ── */
+  function showModalError(modalId, msg){
+    let err=document.querySelector('#'+modalId+' .modal-error');
+    if(!err){
+      err=document.createElement('p');
+      err.className='modal-error';
+      err.style.cssText='color:#c0392b;font-size:.78rem;margin-top:.5rem;text-align:center;';
+      document.querySelector('#'+modalId+' .modal-submit').before(err);
+    }
+    err.textContent=msg;
+  }
+
+  /* ── Dashboard ── */
+  function showDashboard(role, name){
+    const dashboardOverlay=document.getElementById('dashboardOverlay');
+    document.getElementById('dash-name').textContent=name;
+
+    // Configurar según rol
+    const configs={
+      cliente:{
+        badge:'Cliente',
+        badgeColor:'#27ae60',
+        welcome:'Bienvenido a tu espacio legal',
+        desc:'Aquí puedes gestionar tus casos, comunicarte con tu abogado y hacer seguimiento de tus procesos legales.',
+        items:[
+          {icon:'⚖️', title:'Mis Casos', desc:'Visualiza y da seguimiento a tus procesos legales activos.'},
+          {icon:'💬', title:'Chat Seguro', desc:'Comunícate directamente con tu abogado asignado.'},
+          {icon:'📅', title:'Mis Citas', desc:'Gestiona tus reuniones y recordatorios.'},
+          {icon:'💳', title:'Pagos', desc:'Consulta tu historial de pagos y facturas.'},
+          {icon:'📄', title:'Documentos', desc:'Accede y organiza los documentos de tu expediente.'},
+          {icon:'⭐', title:'Calificar Servicio', desc:'Evalúa la atención recibida al cerrar un caso.'},
+        ]
+      },
+      abogado:{
+        badge:'Abogado',
+        badgeColor:'#2980b9',
+        welcome:'Panel de gestión de casos',
+        desc:'Administra tu cartera de clientes, actualiza casos y gestiona tu agenda profesional.',
+        items:[
+          {icon:'📁', title:'Casos Activos', desc:'Gestiona todos tus procesos legales en curso.'},
+          {icon:'👥', title:'Mis Clientes', desc:'Directorio y perfiles de tus clientes.'},
+          {icon:'💬', title:'Mensajes', desc:'Bandeja de comunicación segura con clientes.'},
+          {icon:'📅', title:'Agenda', desc:'Administra tu disponibilidad y citas programadas.'},
+          {icon:'📊', title:'Reportes', desc:'Genera reportes detallados por caso o período.'},
+          {icon:'📋', title:'Expedientes', desc:'Sube y organiza documentos por caso.'},
+        ]
+      },
+      administrador:{
+        badge:'Administrador',
+        badgeColor:'#8e44ad',
+        welcome:'Panel de Administración',
+        desc:'Supervisión completa de la plataforma: usuarios, casos, transacciones y estadísticas.',
+        items:[
+          {icon:'🛡️', title:'Verificar Abogados', desc:'Activa y valida credenciales de abogados registrados.'},
+          {icon:'📊', title:'Estadísticas', desc:'Métricas de uso y rendimiento de la plataforma.'},
+          {icon:'👤', title:'Usuarios', desc:'Gestiona todas las cuentas y niveles de acceso.'},
+          {icon:'⚖️', title:'Supervisar Casos', desc:'Monitorea todos los procesos registrados.'},
+          {icon:'💰', title:'Transacciones', desc:'Audita pagos y facturación del sistema.'},
+          {icon:'⚙️', title:'Configuración', desc:'Ajusta parámetros y políticas de la plataforma.'},
+        ]
+      }
+    };
+
+    const cfg=configs[role]||configs.cliente;
+
+    document.getElementById('dash-badge').textContent=cfg.badge;
+    document.getElementById('dash-badge').style.background=cfg.badgeColor;
+    document.getElementById('dash-welcome').textContent=cfg.welcome;
+    document.getElementById('dash-desc').textContent=cfg.desc;
+
+    // Generar cards
+    const grid=document.getElementById('dash-grid');
+    grid.innerHTML=cfg.items.map(item=>`
+      <div class="dash-card">
+        <div class="dash-card-icon">${item.icon}</div>
+        <h3 class="dash-card-title">${item.title}</h3>
+        <p class="dash-card-desc">${item.desc}</p>
+        <button class="dash-card-btn">Abrir →</button>
+      </div>
+    `).join('');
+
+    dashboardOverlay.classList.add('open');
+    document.body.style.overflow='hidden';
+  }
+
+  function closeDashboard(){
+    document.getElementById('dashboardOverlay').classList.remove('open');
+    document.body.style.overflow='';
+  }
 </script>
+<!-- DASHBOARD OVERLAY -->
+<div class="modal-overlay" id="dashboardOverlay" style="align-items:flex-start;padding:0;">
+  <div style="width:100%;min-height:100vh;background:var(--bg);overflow-y:auto;">
+    <!-- Top bar -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:1rem 5vw;border-bottom:1px solid var(--gold-border);background:var(--nav-bg);backdrop-filter:blur(18px);position:sticky;top:0;z-index:10;">
+      <div style="display:flex;align-items:center;gap:1rem;">
+        <span style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:var(--gold);letter-spacing:.2em;">LEGALIA</span>
+        <span id="dash-badge" style="font-size:.62rem;letter-spacing:.15em;text-transform:uppercase;color:#fff;padding:.25rem .75rem;border-radius:2px;">Cliente</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:1.5rem;">
+        <span style="font-size:.8rem;color:var(--text-muted);">Hola, <strong id="dash-name" style="color:var(--text);"></strong></span>
+        <button onclick="closeDashboard()" style="background:none;border:1px solid var(--gold-border);color:var(--text-muted);cursor:pointer;padding:.4rem 1rem;font-family:'DM Sans',sans-serif;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;transition:all .3s;" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='var(--gold-border)';this.style.color='var(--text-muted)'">Cerrar sesión</button>
+      </div>
+    </div>
+
+    <!-- Hero del dashboard -->
+    <div style="padding:4rem 5vw 2rem;border-bottom:1px solid var(--gold-border);">
+      <div style="font-size:.66rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);display:flex;align-items:center;gap:.8rem;margin-bottom:1rem;">
+        <span style="display:block;width:24px;height:1px;background:var(--gold);"></span>Tu espacio en Legalia
+      </div>
+      <h2 id="dash-welcome" style="font-family:'Cormorant Garamond',serif;font-size:clamp(1.8rem,3vw,2.8rem);font-weight:300;color:var(--white);margin-bottom:.8rem;"></h2>
+      <p id="dash-desc" style="font-size:.95rem;color:var(--text-muted);max-width:560px;line-height:1.7;"></p>
+    </div>
+
+    <!-- Grid de módulos -->
+    <div style="padding:3rem 5vw 5rem;">
+      <div id="dash-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem;"></div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .dash-card{background:var(--card-bg);border:1px solid var(--gold-border);padding:2rem;transition:all .3s;cursor:pointer;}
+  .dash-card:hover{border-color:var(--gold);background:var(--card-hover);transform:translateY(-3px);}
+  .dash-card-icon{font-size:2rem;margin-bottom:1rem;line-height:1;}
+  .dash-card-title{font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:400;color:var(--text);margin-bottom:.5rem;}
+  .dash-card-desc{font-size:.85rem;color:var(--text-muted);line-height:1.6;margin-bottom:1.2rem;}
+  .dash-card-btn{background:none;border:1px solid var(--gold-border);color:var(--gold);font-family:'DM Sans',sans-serif;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;padding:.45rem 1rem;cursor:pointer;transition:all .3s;}
+  .dash-card-btn:hover{background:var(--gold);color:#fff;border-color:var(--gold);}
+</style>
+
 </body>
 </html>
