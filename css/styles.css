@@ -190,7 +190,7 @@ footer{padding:2.5rem 5vw;border-top:1px solid var(--gold-border);display:flex;a
 /* Modo oscuro: screen hace que el fondo negro desaparezca */
 [data-theme="dark"] .logo-icon img {
   mix-blend-mode: screen;
-  filter: brightness(1.5) contrast(1.2);
+  filter: brightness(3.5) contrast(1.0);
 }
 
 .logo:hover .logo-icon {
