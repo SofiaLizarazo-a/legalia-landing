@@ -2,6 +2,41 @@
 // LEGALIA - AUTENTICACIÓN CON BASE DE DATOS
 // ============================================
 
+// ============================================
+// ESPERAR BASE DE DATOS (FUNCIÓN CRÍTICA)
+// ============================================
+
+async function esperarBaseDatos() {
+  console.log('⏳ Esperando base de datos...');
+  
+  let intentos = 0;
+  const maxIntentos = 50; // 5 segundos máximo (50 * 100ms)
+  
+  while (intentos < maxIntentos) {
+    // Verificar que window.db existe Y está inicializada (tiene _db)
+    if (window.db && window.db._db) {
+      console.log('✅ Base de datos lista después de', intentos * 100, 'ms');
+      return true;
+    }
+    
+    // También verificar si db está en el objeto window (por si acaso)
+    if (window.db && window.db.iniciar && window.db._db === undefined) {
+      console.log('⏳ Base de datos aún inicializando... intento', intentos + 1);
+    }
+    
+    // Esperar 100ms antes de reintentar
+    await new Promise(resolve => setTimeout(resolve, 100));
+    intentos++;
+  }
+  
+  console.error('❌ Tiempo de espera agotado para la base de datos');
+  throw new Error('Base de datos no disponible. Recarga la página.');
+}
+
+// ============================================
+// FUNCIONES AUXILIARES
+// ============================================
+
 function esEmailValido(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
 }
@@ -13,10 +48,35 @@ function getLoginType() {
   return t.includes('admin') ? 'administrador' : (t.includes('abogado') ? 'abogado' : 'cliente');
 }
 
+function showModalSuccess(modalId, msg) {
+  let ok = document.querySelector('#' + modalId + ' .modal-ok');
+  if (!ok) {
+    ok = document.createElement('p');
+    ok.className = 'modal-ok';
+    ok.style.cssText = 'color:#27ae60;font-size:.78rem;margin-bottom:.8rem;text-align:center;padding:.5rem;border:1px solid rgba(39,174,96,.3);background:rgba(39,174,96,.06);';
+    const formField = document.querySelector('#' + modalId + ' .form-field');
+    if (formField) {
+      formField.before(ok);
+    } else {
+      document.querySelector('#' + modalId + ' .modal').appendChild(ok);
+    }
+  }
+  ok.textContent = msg;
+  ok.style.display = 'block';
+}
+
 // ============================================
 // INICIAR SESIÓN CON BASE DE DATOS
 // ============================================
 async function doLogin() {
+  // 👇 ESPERAR A QUE LA BASE DE DATOS ESTÉ LISTA
+  try {
+    await esperarBaseDatos();
+  } catch (error) {
+    showModalError('loginModal', error.message);
+    return;
+  }
+  
   clearModalError('loginModal');
   const email = document.querySelector('#loginModal input[type="email"]').value.trim();
   const pass = document.querySelector('#loginModal input[type="password"]').value.trim();
@@ -66,6 +126,14 @@ async function doLogin() {
 // REGISTRAR USUARIO CON BASE DE DATOS
 // ============================================
 async function doRegister() {
+  // 👇 ESPERAR A QUE LA BASE DE DATOS ESTÉ LISTA
+  try {
+    await esperarBaseDatos();
+  } catch (error) {
+    showModalError('registerModal', error.message);
+    return;
+  }
+  
   clearModalError('registerModal');
   const nombre = document.querySelector('#registerModal input[placeholder="Tu nombre"]').value.trim();
   const apellido = document.querySelector('#registerModal input[placeholder="Tu apellido"]').value.trim();
@@ -166,28 +234,10 @@ async function doRegister() {
 // CERRAR SESIÓN
 // ============================================
 function doLogout() {
-  window.db.setUsuarioActual(null);
+  if (window.db) {
+    window.db.setUsuarioActual(null);
+  }
   closeDashboard();
   // Recargar la página para reiniciar el estado
   location.reload();
-}
-
-// ============================================
-// FUNCIONES AUXILIARES
-// ============================================
-function showModalSuccess(modalId, msg) {
-  let ok = document.querySelector('#' + modalId + ' .modal-ok');
-  if (!ok) {
-    ok = document.createElement('p');
-    ok.className = 'modal-ok';
-    ok.style.cssText = 'color:#27ae60;font-size:.78rem;margin-bottom:.8rem;text-align:center;padding:.5rem;border:1px solid rgba(39,174,96,.3);background:rgba(39,174,96,.06);';
-    const formField = document.querySelector('#' + modalId + ' .form-field');
-    if (formField) {
-      formField.before(ok);
-    } else {
-      document.querySelector('#' + modalId + ' .modal').appendChild(ok);
-    }
-  }
-  ok.textContent = msg;
-  ok.style.display = 'block';
 }
