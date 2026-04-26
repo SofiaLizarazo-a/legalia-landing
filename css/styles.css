@@ -169,7 +169,7 @@ footer{padding:2.5rem 5vw;border-top:1px solid var(--gold-border);display:flex;a
   background: transparent;
   mix-blend-mode: multiply;
 }
-/* Logo adaptable a tema claro/oscuro */
+/* Logo adaptable a modo oscuro */
 .logo-icon img {
   background: transparent;
   transition: filter 0.3s ease;
@@ -178,4 +178,3 @@ footer{padding:2.5rem 5vw;border-top:1px solid var(--gold-border);display:flex;a
 [data-theme="dark"] .logo-icon img {
   filter: brightness(0) invert(1);
 }
-
