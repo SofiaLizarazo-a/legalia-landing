@@ -170,13 +170,12 @@ footer{padding:2.5rem 5vw;border-top:1px solid var(--gold-border);display:flex;a
   mix-blend-mode: multiply;
 }
 
-
 /* ============================================
-   CONVERTIR LOGO A DORADO EN MODO OSCURO
+   LOGO - FORZAR BRILLO Y COLOR
    ============================================ */
 
 [data-theme="dark"] .logo-icon img {
-  filter: sepia(1) hue-rotate(-5deg) saturate(8) brightness(1.5) contrast(1.2);
+  filter: brightness(2.5) sepia(1) hue-rotate(-5deg) saturate(8) contrast(1.2);
   opacity: 1;
 }
 
