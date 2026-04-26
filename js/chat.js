@@ -1,8 +1,3 @@
-// ============================================
-// LEGALIA - MÓDULO DE CHAT
-// Asistente virtual y asignación de abogados
-// ============================================
-
 const chatState = {
   phase: 'auto',
   lawyer: null,
