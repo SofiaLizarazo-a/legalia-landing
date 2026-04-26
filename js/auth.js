@@ -19,11 +19,6 @@ async function esperarBaseDatos() {
       return true;
     }
     
-    // También verificar si db está en el objeto window (por si acaso)
-    if (window.db && window.db.iniciar && window.db._db === undefined) {
-      console.log('⏳ Base de datos aún inicializando... intento', intentos + 1);
-    }
-    
     // Esperar 100ms antes de reintentar
     await new Promise(resolve => setTimeout(resolve, 100));
     intentos++;
