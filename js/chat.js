@@ -257,4 +257,64 @@ async function sendMsg() {
       
       addBubble('bot', saludoAbogado, chatState.lawyer.avatar);
       
-    } else if (respuesta
+    } else if (respuesta === 'no') {
+      addBubble('bot', `Comprendo. Si en algún momento desea recibir asesoría legal, no dude en contactarnos.\n\n**¿Hay algo más en lo que pueda ayudarle?**`);
+    } else {
+      addBubble('bot', `Por favor, responda **"sí"** si desea que le asigne un abogado, o **"no"** si prefiere continuar.\n\n**¿Desea que le asigne un abogado?** *(sí / no)*`);
+    }
+    return;
+  }
+  
+  if (chatState.phase === 'assigned' && chatState.lawyer) {
+    showTyping(chatState.lawyer.nombre);
+    await sleep(2000);
+    hideTyping();
+    
+    const respuesta = generarRespuestaInteligente(text, chatState.selectedArea);
+    addBubble('bot', respuesta, chatState.lawyer.avatar);
+    
+    chatState.history.push({ role: 'assistant', content: respuesta });
+    await guardarConversacionActual();
+  }
+}
+
+// Funciones auxiliares UI
+function addBubble(type, html, avatar) {
+  const container = document.getElementById('chat-messages');
+  const wrap = document.createElement('div');
+
+  if (type === 'system') {
+    wrap.style.cssText = 'align-self:center;max-width:90%;text-align:center;margin:0.5rem 0;';
+    wrap.innerHTML = `<div class="bubble system" style="background:transparent;border:1px dashed var(--gold-border);color:var(--text-muted);font-size:.78rem;font-style:italic;padding:.5rem;border-radius:2px;">${html}</div>`;
+  } else {
+    wrap.className = `chat-bubble-wrap ${type}`;
+    const now = new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+    const ava = type === 'user'
+      ? `<div class="bubble-avatar">${(chatState.userName || 'U')[0].toUpperCase()}</div>`
+      : `<div class="bubble-avatar">${avatar || '🤖'}</div>`;
+    wrap.innerHTML = `
+      ${ava}
+      <div>
+        <div class="bubble ${type}" style="white-space: pre-line;">${html}</div>
+        <div class="bubble-time">${now}</div>
+      </div>`;
+  }
+
+  container.appendChild(wrap);
+  container.scrollTop = container.scrollHeight;
+}
+
+function showTyping(name) {
+  chatState.typing = true;
+  document.getElementById('chat-typing').style.display = 'block';
+  document.getElementById('chat-typing').textContent = `${name || 'Abogado'} está escribiendo…`;
+}
+
+function hideTyping() {
+  chatState.typing = false;
+  document.getElementById('chat-typing').style.display = 'none';
+}
+
+function sleep(ms) {
+  return new Promise(r => setTimeout(r, ms));
+}
