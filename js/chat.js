@@ -1,18 +1,25 @@
+// ============================================
+// LEGALIA - MÓDULO DE CHAT CORREGIDO
+// Primero: opciones numeradas
+// Luego: chat con abogado asignado
+// ============================================
+
 const chatState = {
-  phase: 'auto',
+  phase: 'menu',        // 'menu' = mostrando opciones, 'assigned' = con abogado
   lawyer: null,
-  msgCount: 0,
-  assignAfter: 4,
   history: [],
   typing: false,
   userName: '',
+  selectedArea: null,
 };
 
-const LAWYERS = [
-  { name: 'Dr. Andrés Morales', spec: 'Derecho Civil', avatar: '⚖️' },
-  { name: 'Dra. Camila Ríos', spec: 'Derecho Laboral', avatar: '👩‍⚖️' },
-  { name: 'Dr. Felipe Soto', spec: 'Derecho Penal', avatar: '🧑‍⚖️' },
-  { name: 'Dra. Valeria Cruz', spec: 'Derecho de Familia', avatar: '👩‍⚖️' },
+const AREAS_LEGALES = [
+  { numero: 1, nombre: 'Derecho Civil', abogado: { nombre: 'Dr. Andrés Morales', avatar: '⚖️', especialidad: 'Civil (contratos, deudas, responsabilidad civil)' } },
+  { numero: 2, nombre: 'Derecho Penal', abogado: { nombre: 'Dr. Felipe Soto', avatar: '🧑‍⚖️', especialidad: 'Penal (delitos, defensa penal)' } },
+  { numero: 3, nombre: 'Derecho Laboral', abogado: { nombre: 'Dra. Camila Ríos', avatar: '👩‍⚖️', especialidad: 'Laboral (despidos, liquidaciones, acoso laboral)' } },
+  { numero: 4, nombre: 'Derecho de Familia', abogado: { nombre: 'Dra. Valeria Cruz', avatar: '👩‍⚖️', especialidad: 'Familia (divorcios, custodia, alimentos)' } },
+  { numero: 5, nombre: 'Derecho Comercial', abogado: { nombre: 'Dr. Ricardo Méndez', avatar: '⚖️', especialidad: 'Comercial (contratos empresariales, sociedades)' } },
+  { numero: 6, nombre: 'Derecho Administrativo', abogado: { nombre: 'Dr. Sergio Torres', avatar: '🧑‍⚖️', especialidad: 'Administrativo (contratos estatales, licencias)' } },
 ];
 
 function openChat() {
@@ -20,28 +27,32 @@ function openChat() {
   overlay.style.display = 'flex';
   document.body.style.overflow = 'hidden';
 
-  chatState.phase = 'auto';
+  // Reiniciar estado
+  chatState.phase = 'menu';
   chatState.lawyer = null;
-  chatState.msgCount = 0;
   chatState.history = [];
+  chatState.selectedArea = null;
   chatState.userName = (window._currentUser || {}).name || 'Cliente';
 
+  // Limpiar UI
   document.getElementById('chat-messages').innerHTML = '';
   document.getElementById('chat-input').value = '';
   document.getElementById('chat-assign-badge').style.display = 'none';
   document.getElementById('chat-avatar').textContent = '🤖';
   document.getElementById('chat-who').textContent = 'Asistente Legal Legalia';
-  document.getElementById('chat-status').textContent = '● En línea · Respuesta automática';
+  document.getElementById('chat-status').textContent = '● En línea · Selecciona un área';
 
+  // Mensaje de bienvenida con opciones numeradas
   setTimeout(() => {
-    addBubble('bot',
-      `Hola ${chatState.userName} 👋, soy el asistente legal de <strong>Legalia</strong>. Estoy aquí para orientarte antes de que te asignemos un abogado especializado.<br><br>
-      Cuéntame, ¿en qué área legal necesitas ayuda? Por ejemplo:<br>
-      • Derecho laboral (despido, liquidación)<br>
-      • Derecho civil (contratos, deudas)<br>
-      • Derecho penal<br>
-      • Derecho de familia (divorcio, custodia)`
-    );
+    let menuTexto = `Hola ${chatState.userName} 👋, soy el asistente legal de <strong>Legalia</strong>.\n\n`;
+    menuTexto += `Por favor, **selecciona el área legal** que necesitas escribiendo el **número** correspondiente:\n\n`;
+    AREAS_LEGALES.forEach(area => {
+      menuTexto += `<strong>${area.numero}.</strong> ${area.nombre}\n`;
+    });
+    menuTexto += `\n*(Ejemplo: responde "2" si necesitas Derecho Penal)*`;
+    
+    addBubble('bot', menuTexto);
+    chatState.phase = 'waiting_for_number';
   }, 400);
 }
 
@@ -59,69 +70,93 @@ async function sendMsg() {
   input.style.height = 'auto';
 
   addBubble('user', text);
-  chatState.msgCount++;
   chatState.history.push({ role: 'user', content: text });
 
-  if (chatState.phase === 'auto' && chatState.msgCount === chatState.assignAfter) {
-    await sleep(800);
-    await assignLawyer();
+  // ========================================
+  // CASO 1: Esperando que el usuario elija un número
+  // ========================================
+  if (chatState.phase === 'waiting_for_number') {
+    const numero = parseInt(text);
+    const areaSeleccionada = AREAS_LEGALES.find(a => a.numero === numero);
+    
+    if (!areaSeleccionada) {
+      addBubble('bot', `❌ Por favor, responde con un **número válido** del 1 al ${AREAS_LEGALES.length}.\n\n${generarMenuNumeros()}`);
+      return;
+    }
+
+    // Usuario eligió un área válida
+    chatState.selectedArea = areaSeleccionada;
+    chatState.lawyer = areaSeleccionada.abogado;
+    chatState.phase = 'assigned';
+    
+    // Actualizar UI del chat
+    document.getElementById('chat-avatar').textContent = chatState.lawyer.avatar;
+    document.getElementById('chat-who').textContent = chatState.lawyer.nombre;
+    document.getElementById('chat-status').textContent = `● En línea · ${chatState.lawyer.especialidad}`;
+    document.getElementById('chat-assign-badge').style.display = 'block';
+    
+    // Mensaje de confirmación
+    addBubble('system', `✅ Has seleccionado **${areaSeleccionada.nombre}**\n\n📋 Te ha sido asignado: **${chatState.lawyer.nombre}** (${chatState.lawyer.especialidad})`);
+    
+    await sleep(1000);
+    
+    // El abogado saluda y pide los detalles del caso
+    showTyping(chatState.lawyer.nombre);
+    await sleep(1500);
+    hideTyping();
+    
+    const saludoAbogado = `Hola ${chatState.userName}, soy ${chatState.lawyer.nombre}, tu abogado especialista en ${chatState.lawyer.especialidad}. 👋\n\nPara poder ayudarte mejor, cuéntame brevemente los **detalles de tu caso**:\n- ¿Desde cuándo ocurrió?\n- ¿Hay documentación relevante?\n- ¿Cuál es tu objetivo principal?`;
+    
+    addBubble('bot', saludoAbogado, chatState.lawyer.avatar);
+    chatState.history.push({ role: 'assistant', content: saludoAbogado });
     return;
   }
-
-  showTyping();
-  const reply = await getAIResponse(text);
-  hideTyping();
-  chatState.history.push({ role: 'assistant', content: reply });
-  addBubble('bot', reply);
+  
+  // ========================================
+  // CASO 2: Chat con el abogado asignado
+  // ========================================
+  if (chatState.phase === 'assigned' && chatState.lawyer) {
+    showTyping(chatState.lawyer.nombre);
+    
+    try {
+      const respuesta = await getLawyerResponse(text);
+      hideTyping();
+      addBubble('bot', respuesta, chatState.lawyer.avatar);
+      chatState.history.push({ role: 'assistant', content: respuesta });
+    } catch (error) {
+      hideTyping();
+      addBubble('bot', 'Disculpa, tuve un problema de conexión. ¿Puedes repetir tu mensaje?', chatState.lawyer.avatar);
+    }
+    return;
+  }
 }
 
-async function assignLawyer() {
-  addBubble('system', '⏳ Analizando tu consulta para asignarte el abogado más adecuado…');
-  await sleep(2200);
-
-  const texto = chatState.history.map(m => m.content).join(' ').toLowerCase();
-  let lawyer = LAWYERS[Math.floor(Math.random() * LAWYERS.length)];
-  if (texto.includes('laboral') || texto.includes('despido') || texto.includes('trabajo')) lawyer = LAWYERS[1];
-  else if (texto.includes('penal') || texto.includes('delito') || texto.includes('crimen')) lawyer = LAWYERS[2];
-  else if (texto.includes('familia') || texto.includes('divorcio') || texto.includes('custodia')) lawyer = LAWYERS[3];
-  else if (texto.includes('civil') || texto.includes('contrato') || texto.includes('deuda')) lawyer = LAWYERS[0];
-
-  chatState.lawyer = lawyer;
-  chatState.phase = 'assigned';
-
-  document.getElementById('chat-avatar').textContent = lawyer.avatar;
-  document.getElementById('chat-who').textContent = lawyer.name;
-  document.getElementById('chat-status').textContent = `● En línea · ${lawyer.spec}`;
-  document.getElementById('chat-assign-badge').style.display = 'block';
-
-  addBubble('system', `✅ <strong>${lawyer.name}</strong> (${lawyer.spec}) ha sido asignado/a a tu caso y se ha unido a la conversación.`);
-
-  await sleep(1000);
-  showTyping(lawyer.name);
-  await sleep(2000);
-  hideTyping();
-
-  const intro = await getAIResponseAsLawyer(
-    `El asistente automático ya tuvo ${chatState.assignAfter} mensajes con el cliente. Ahora tú eres ${lawyer.name}, abogado especialista en ${lawyer.spec}. Saluda al cliente ${chatState.userName}, presenta tu especialidad brevemente y pregúntale por los detalles específicos de su caso para poder orientarlo mejor. Sé cálido, profesional y directo.`,
-    lawyer
-  );
-  chatState.history.push({ role: 'assistant', content: intro });
-  addBubble('bot', intro, lawyer.avatar);
+// Generar menú de números (formato amigable)
+function generarMenuNumeros() {
+  let menu = "Opciones disponibles:\n\n";
+  AREAS_LEGALES.forEach(area => {
+    menu += `${area.numero}. ${area.nombre}\n`;
+  });
+  return menu;
 }
 
-async function getAIResponse(userMsg) {
-  const systemPrompt = chatState.phase === 'assigned'
-    ? `Eres ${chatState.lawyer.name}, abogado especialista en ${chatState.lawyer.spec} de la plataforma Legalia en Colombia. 
-Respondes siempre como este abogado: profesional, empático, con lenguaje claro pero preciso. 
-Brinda orientación legal real pero aclara que para un concepto formal se necesita revisión del caso completo.
-No menciones que eres IA. Mantén coherencia con el historial de la conversación. Respuestas concisas (3-5 oraciones máximo).`
-    : `Eres el asistente legal automático de Legalia, una plataforma legal colombiana.
-Tu rol es orientar al usuario, identificar el área legal de su problema y recopilar información básica antes de asignarle un abogado.
-Sé amigable, claro y profesional. No des consejos legales definitivos, solo orientación general.
-Menciona que pronto se le asignará un abogado especializado. Respuestas concisas (3-4 oraciones).`;
+// Obtener respuesta del abogado usando la API
+async function getLawyerResponse(userMsg) {
+  const systemPrompt = `Eres ${chatState.lawyer.nombre}, abogado especialista en ${chatState.lawyer.especialidad} de la plataforma Legalia en Colombia.
+
+Reglas IMPORTANTES:
+1. Responde SIEMPRE en primera persona como este abogado.
+2. Sé profesional, empático y claro.
+3. Brinda orientación legal útil, pero aclara que para un concepto formal se necesita revisión del caso completo.
+4. Si el usuario da detalles específicos (fechas, documentos, situaciones), reconócelos y haz preguntas de seguimiento relevantes.
+5. Tus respuestas deben ser concisas pero completas (3-5 oraciones como mínimo).
+6. No menciones que eres una IA.
+7. Ofrece pasos concretos que el cliente pueda seguir.
+
+Contexto del caso: El usuario seleccionó ${chatState.selectedArea.nombre}.`;
 
   try {
-    const messages = [...chatState.history.slice(-8)];
+    const messages = [...chatState.history.slice(-10)]; // contexto de últimos 10 mensajes
     if (messages[messages.length - 1]?.content !== userMsg) {
       messages.push({ role: 'user', content: userMsg });
     }
@@ -137,42 +172,26 @@ Menciona que pronto se le asignará un abogado especializado. Respuestas concisa
       })
     });
     const data = await res.json();
-    return data.content?.[0]?.text || 'Disculpa, tuve un inconveniente. ¿Puedes repetir tu consulta?';
+    return data.content?.[0]?.text || `Gracias por compartir tu caso, ${chatState.userName}. ¿Podrías darme más detalles específicos para poder orientarte mejor?`;
   } catch (e) {
-    return 'Tuve un problema de conexión. Por favor intenta de nuevo en un momento.';
+    console.error('Error en API:', e);
+    return `Disculpa, estoy teniendo problemas técnicos. ¿Podrías repetir tu mensaje?`;
   }
 }
 
 async function getAIResponseAsLawyer(prompt, lawyer) {
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1000,
-        system: `Eres ${lawyer.name}, abogado especialista en ${lawyer.spec} de Legalia Colombia. 
-Respondes siempre en primera persona como este abogado. No menciones que eres IA.`,
-        messages: [
-          ...chatState.history.slice(-6),
-          { role: 'user', content: prompt }
-        ]
-      })
-    });
-    const data = await res.json();
-    return data.content?.[0]?.text || `Hola ${chatState.userName}, soy ${lawyer.name}. Estoy revisando tu caso y en un momento te doy más detalles.`;
-  } catch (e) {
-    return `Hola ${chatState.userName}, soy ${lawyer.name} especialista en ${lawyer.spec}. Cuéntame los detalles de tu situación para orientarte mejor.`;
-  }
+  // Esta función se mantiene por compatibilidad, pero ahora usamos getLawyerResponse
+  return getLawyerResponse(prompt);
 }
 
+// Funciones auxiliares UI
 function addBubble(type, html, avatar) {
   const container = document.getElementById('chat-messages');
   const wrap = document.createElement('div');
 
   if (type === 'system') {
     wrap.style.cssText = 'align-self:center;max-width:90%;text-align:center;';
-    wrap.innerHTML = `<div class="bubble system">${html}</div>`;
+    wrap.innerHTML = `<div class="bubble system" style="white-space: pre-line;">${html}</div>`;
   } else {
     wrap.className = `chat-bubble-wrap ${type}`;
     const now = new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
@@ -182,7 +201,7 @@ function addBubble(type, html, avatar) {
     wrap.innerHTML = `
       ${ava}
       <div>
-        <div class="bubble ${type}">${html}</div>
+        <div class="bubble ${type}" style="white-space: pre-line;">${html}</div>
         <div class="bubble-time">${now}</div>
       </div>`;
   }
@@ -193,9 +212,8 @@ function addBubble(type, html, avatar) {
 
 function showTyping(name) {
   chatState.typing = true;
-  const who = name || (chatState.phase === 'assigned' ? chatState.lawyer?.name : 'Asistente');
   document.getElementById('chat-typing').style.display = 'block';
-  document.getElementById('chat-typing').textContent = `${who} está escribiendo…`;
+  document.getElementById('chat-typing').textContent = `${name || 'Abogado'} está escribiendo…`;
 }
 
 function hideTyping() {
