@@ -1,5 +1,5 @@
 // ============================================
-// LEGALIA - CHAT PROFESIONAL CON SOLICITUD DE DOCUMENTOS
+// LEGALIA - CHAT PROFESIONAL CON BASE DE DATOS
 // ============================================
 
 const chatState = {
@@ -10,6 +10,7 @@ const chatState = {
   typing: false,
   userName: '',
   selectedArea: null,
+  conversationId: null,
 };
 
 const AREAS_LEGALES = [
@@ -39,6 +40,7 @@ function openChat() {
   chatState.lawyer = null;
   chatState.history = [];
   chatState.selectedArea = null;
+  chatState.conversationId = null;
   chatState.userName = (window._currentUser || {}).name || 'Cliente';
 
   document.getElementById('chat-messages').innerHTML = '';
@@ -48,9 +50,54 @@ function openChat() {
   document.getElementById('chat-who').textContent = 'Asistente Legal Legalia';
   document.getElementById('chat-status').textContent = '● En línea · Consulta inicial';
 
+  // Cargar conversaciones guardadas
+  cargarConversacionesGuardadas();
+
   setTimeout(() => {
     addBubble('bot', `Buenos días/tardes, ${chatState.userName}. Soy el asistente de **Legalia**.\n\n**¿Podría indicarme cuál es el área legal de su caso?**\n\n• Derecho Civil\n• Derecho Penal\n• Derecho Laboral\n• Derecho de Familia\n• Derecho Comercial\n• Derecho Administrativo\n\n*(Responda con el nombre del área, ej: "Derecho Laboral")*`);
   }, 400);
+}
+
+async function cargarConversacionesGuardadas() {
+  const usuarioActual = window.db?.obtenerUsuarioActual();
+  if (!usuarioActual) return;
+  
+  try {
+    const conversaciones = await window.db.conversaciones.obtenerPorUsuario(usuarioActual.email);
+    if (conversaciones && conversaciones.length > 0) {
+      const ultima = conversaciones[conversaciones.length - 1];
+      chatState.conversationId = ultima.id;
+      chatState.history = ultima.mensajes || [];
+      
+      // Mostrar mensaje de conversación cargada
+      if (chatState.history.length > 0) {
+        addBubble('system', `📂 Conversación anterior cargada (${new Date(ultima.fecha).toLocaleString()})`);
+        // Aquí podrías mostrar los mensajes anteriores
+      }
+    }
+  } catch (error) {
+    console.error('Error al cargar conversaciones:', error);
+  }
+}
+
+async function guardarConversacionActual() {
+  const usuarioActual = window.db?.obtenerUsuarioActual();
+  if (!usuarioActual || chatState.history.length === 0) return;
+  
+  try {
+    if (chatState.conversationId) {
+      await window.db.conversaciones.actualizar(chatState.conversationId, chatState.history);
+    } else {
+      const id = await window.db.conversaciones.guardar(
+        usuarioActual.email, 
+        chatState.history, 
+        chatState.selectedArea?.nombre
+      );
+      chatState.conversationId = id;
+    }
+  } catch (error) {
+    console.error('Error al guardar conversación:', error);
+  }
 }
 
 function identificarArea(texto) {
@@ -66,21 +113,18 @@ function identificarArea(texto) {
 }
 
 function closeChat() {
+  guardarConversacionActual();
   document.getElementById('chatOverlay').style.display = 'none';
   document.body.style.overflow = 'hidden';
 }
 
-// Función para generar respuestas inteligentes del abogado según el mensaje del usuario
 function generarRespuestaInteligente(mensaje, area) {
   const msg = mensaje.toLowerCase();
   
-  // ========================================
   // DETECTAR SI EL USUARIO NO TIENE DOCUMENTOS
-  // ========================================
   if ((msg.includes('no tengo') || msg.includes('no cuento') || msg.includes('me falta') || msg.includes('sin documento') || msg.includes('no hay') || msg.includes('carezco')) && 
       (msg.includes('documento') || msg.includes('papel') || msg.includes('prueba') || msg.includes('evidencia'))) {
     
-    // Generar solicitud de documentos según el área
     let docsSolicitados = [];
     if (area?.id === 'laboral') {
       docsSolicitados = [
@@ -101,38 +145,28 @@ function generarRespuestaInteligente(mensaje, area) {
         { nombre: 'Pruebas', descripcion: 'Fotografías, videos o documentos que respalden su versión' },
         { nombre: 'Notificaciones', descripcion: 'Citaciones o notificaciones de autoridades' }
       ];
-    } else if (area?.id === 'familia') {
-      docsSolicitados = [
-        { nombre: 'Registros civiles', descripcion: 'Registros de nacimiento o matrimonio' },
-        { nombre: 'Acuerdos previos', descripcion: 'Acuerdos de alimentos o custodia existentes' },
-        { nombre: 'Pruebas de ingresos', descripcion: 'Certificados laborales o declaración de renta' }
-      ];
     } else {
       docsSolicitados = [
         { nombre: 'Documentación relevante', descripcion: 'Cualquier documento relacionado con su caso' }
       ];
     }
     
-    // Crear las solicitudes de documentos usando la función global del dashboard
     let listaDocs = '';
-    docsSolicitados.forEach(doc => {
-      if (window.agregarDocumentoPendiente) {
-        window.agregarDocumentoPendiente(doc.nombre, doc.descripcion, area?.nombre || 'General');
-      }
+    docsSolicitados.forEach(async (doc) => {
       listaDocs += `• **${doc.nombre}**: ${doc.descripcion}\n`;
+      if (window.agregarDocumentoPendiente) {
+        await window.agregarDocumentoPendiente(doc.nombre, doc.descripcion, area?.nombre || 'General');
+      }
     });
     
-    // Actualizar la lista de documentos pendientes si el dashboard está abierto
     if (window.actualizarListaDocumentos) {
-      window.actualizarListaDocumentos();
+      setTimeout(() => window.actualizarListaDocumentos(), 500);
     }
     
-    return `Entiendo que no cuenta con todos los documentos necesarios. 📋\n\nPara poder ayudarle mejor, he **generado una solicitud de documentos** que aparecerá en su **panel de "Documentos pendientes"** dentro del dashboard.\n\n**Documentos solicitados:**\n${listaDocs}\n\nPor favor, ingrese al dashboard y suba los documentos que tenga disponibles desde la sección **"Documentos pendientes"**. Cuando los suba, yo podré revisarlos y darle una mejor orientación.\n\n**📌 Nota:** Si tiene algunos de estos documentos ahora mismo, puede mencionármelos para ir analizando su caso.`;
+    return `Entiendo que no cuenta con todos los documentos necesarios. 📋\n\nPara poder ayudarle mejor, he **generado una solicitud de documentos** que aparecerá en su **panel de "Documentos pendientes"** dentro del dashboard.\n\n**Documentos solicitados:**\n${listaDocs}\n\nPor favor, ingrese al dashboard y suba los documentos que tenga disponibles. Cuando los suba, yo podré revisarlos y darle una mejor orientación.`;
   }
   
-  // ========================================
   // RESPUESTAS INTELIGENTES POR CONTEXTO
-  // ========================================
   if (msg.includes('hora') || msg.includes('horas') || msg.includes('jornada') || msg.includes('42') || msg.includes('48')) {
     return "En Colombia, la jornada laboral máxima es de **48 horas a la semana** (8 horas diarias). Si trabaja más de 48 horas sin pago de horas extras, eso es **ilegal** según el Código Sustantivo del Trabajo.\n\n¿Podría indicarme cuántas horas trabaja exactamente a la semana? ¿Le pagan las horas extras que trabaja?";
   }
@@ -142,25 +176,18 @@ function generarRespuestaInteligente(mensaje, area) {
   }
   
   if (msg.includes('directivos') || msg.includes('empresa') || msg.includes('respuesta') || msg.includes('evadiendo')) {
-    return "Lamento que no le estén dando una respuesta clara. 📌 **Le recomiendo:**\n\n1️⃣ Envíe una **comunicación formal por escrito** (carta o correo) a Recursos Humanos solicitando una explicación.\n2️⃣ Guarde copia de **todas las comunicaciones**.\n3️⃣ Si no hay respuesta, puede acudir al **Ministerio del Trabajo**.\n\n¿Le gustaría que le ayude a **redactar un modelo de carta o correo** para enviar a la empresa?";
+    return "Lamento que no le estén dando una respuesta clara. 📌 **Le recomiendo:**\n\n1️⃣ Envíe una **comunicación formal por escrito** (carta o correo) a Recursos Humanos.\n2️⃣ Guarde copia de **todas las comunicaciones**.\n3️⃣ Si no hay respuesta, puede acudir al **Ministerio del Trabajo**.\n\n¿Le gustaría que le ayude a **redactar un modelo de carta o correo** para enviar a la empresa?";
   }
   
   if (msg.includes('subí') || (msg.includes('documento') && (msg.includes('subi') || msg.includes('adjunté') || msg.includes('cargue')))) {
-    return "✅ **¡Excelente!** Gracias por subir el documento. Ya puedo verlo en mi sistema.\n\nLo revisaré con detenimiento para poder orientarle mejor. ¿Necesita alguna aclaración adicional mientras tanto o hay algo más que quiera contarme sobre su caso?";
-  }
-  
-  if (msg.includes('carta') || msg.includes('modelo') || msg.includes('redactar')) {
-    return "📝 **Modelo de comunicación formal:**\n\n*"Estimado departamento de Recursos Humanos:\n\nPor medio de la presente, solicito comedidamente una explicación formal sobre [describa su situación específica].\n\nAgradezco su pronta respuesta.*\n\n¿Le parece bien este modelo? ¿Necesita que lo ajuste para su situación específica?";
+    return "✅ **¡Excelente!** Gracias por subir el documento. Ya puedo verlo en mi sistema.\n\nLo revisaré para poder orientarle mejor. ¿Necesita alguna aclaración adicional?";
   }
   
   if (msg.includes('gracias') || msg.includes('vale') || msg.includes('ok') || msg.includes('perfecto')) {
-    return "¡De nada! Estoy aquí para ayudarle. 🤝\n\nSi en algún momento necesita más orientación o tiene nuevos documentos para mostrar, no dude en contactarme. ¿Hay algo más en lo que pueda ayudarle?";
+    return "¡De nada! Estoy aquí para ayudarle. 🤝\n\nSi necesita más orientación o tiene nuevos documentos, no dude en contactarme. ¿Hay algo más en lo que pueda ayudarle?";
   }
   
-  // ========================================
-  // RESPUESTA POR DEFECTO
-  // ========================================
-  return `Gracias por compartir su caso, ${chatState.userName}. 📋\n\nPara poder orientarle mejor, ¿podría indicarme si tiene documentos como contrato, correos o comprobantes?\n\n**Si no tiene algunos documentos**, puedo solicitarle los específicos que necesita para su caso desde el dashboard. Solo dígame "no tengo documentos" y generaré la solicitud.\n\n¿Qué información adicional puede darme sobre su situación?`;
+  return `Gracias por compartir su caso, ${chatState.userName}. 📋\n\nPara poder orientarle mejor, ¿podría indicarme si tiene documentos como contrato, correos o comprobantes?\n\n**Si no tiene algunos documentos**, dígame "no tengo documentos" y generaré una solicitud en su dashboard.\n\n¿Qué información adicional puede darme sobre su situación?`;
 }
 
 async function sendMsg() {
@@ -173,10 +200,8 @@ async function sendMsg() {
 
   addBubble('user', text);
   chatState.history.push({ role: 'user', content: text });
+  await guardarConversacionActual();
 
-  // ========================================
-  // CASO 1: Identificando el área legal
-  // ========================================
   if (chatState.phase === 'initial') {
     const areaEncontrada = identificarArea(text);
     
@@ -184,6 +209,7 @@ async function sendMsg() {
       chatState.selectedArea = areaEncontrada;
       chatState.phase = 'asking_questions';
       chatState.step = 0;
+      await guardarConversacionActual();
       
       addBubble('bot', `Gracias por indicarme que su caso es de **${areaEncontrada.nombre}**. Para poder asignarle el abogado más adecuado, voy a hacerle algunas preguntas.\n\n**${PREGUNTAS_PROFESIONALES[0].pregunta}**\n\n${PREGUNTAS_PROFESIONALES[0].instruccion}`);
       return;
@@ -193,9 +219,6 @@ async function sendMsg() {
     }
   }
   
-  // ========================================
-  // CASO 2: Haciendo preguntas profesionales
-  // ========================================
   if (chatState.phase === 'asking_questions') {
     chatState.step++;
     
@@ -204,20 +227,19 @@ async function sendMsg() {
       addBubble('bot', `**${p.pregunta}**\n\n${p.instruccion}`);
     } else {
       chatState.phase = 'offering_lawyer';
+      await guardarConversacionActual();
       addBubble('bot', `Muchas gracias por compartir esta información, ${chatState.userName}. Con base en lo que me ha comentado, puedo asignarle un abogado especializado en **${chatState.selectedArea.nombre}**.\n\n**¿Desea que le asigne un abogado ahora mismo?**\n\n*(Responda "sí" o "no")*`);
     }
     return;
   }
   
-  // ========================================
-  // CASO 3: Ofreciendo asignar abogado
-  // ========================================
   if (chatState.phase === 'offering_lawyer') {
     const respuesta = text.toLowerCase();
     
     if (respuesta === 'si' || respuesta === 'sí' || respuesta === 'yes') {
       chatState.lawyer = chatState.selectedArea.abogado;
       chatState.phase = 'assigned';
+      await guardarConversacionActual();
       
       document.getElementById('chat-avatar').textContent = chatState.lawyer.avatar;
       document.getElementById('chat-who').textContent = chatState.lawyer.nombre;
@@ -231,71 +253,8 @@ async function sendMsg() {
       await sleep(1500);
       hideTyping();
       
-      const saludoAbogado = `Hola ${chatState.userName}, soy ${chatState.lawyer.nombre}, abogado especialista en ${chatState.lawyer.especialidad}. He revisado la información que compartió con el asistente.\n\nAhora quedo a su disposición. Cuénteme con más detalle su situación para poder brindarle la mejor orientación legal.\n\n📌 **Nota:** Si necesita subir documentos, puedo solicitarle los específicos solo dígame "no tengo documentos" y generaré la solicitud en su dashboard.`;
+      const saludoAbogado = `Hola ${chatState.userName}, soy ${chatState.lawyer.nombre}, abogado especialista en ${chatState.lawyer.especialidad}. He revisado la información que compartió con el asistente.\n\nAhora quedo a su disposición. Cuénteme con más detalle su situación.\n\n📌 **Nota:** Si necesita subir documentos, dígame "no tengo documentos" y generaré la solicitud en su dashboard.`;
       
       addBubble('bot', saludoAbogado, chatState.lawyer.avatar);
       
-    } else if (respuesta === 'no') {
-      addBubble('bot', `Comprendo. Si en algún momento desea recibir asesoría legal, no dude en contactarnos.\n\n**¿Hay algo más en lo que pueda ayudarle?**\n\n*(Responda "sí" para continuar o "no" para finalizar)*`);
-    } else {
-      addBubble('bot', `Por favor, responda **"sí"** si desea que le asigne un abogado, o **"no"** si prefiere continuar con el asistente.\n\n**¿Desea que le asigne un abogado?** *(sí / no)*`);
-    }
-    return;
-  }
-  
-  // ========================================
-  // CASO 4: Chat INTELIGENTE con el abogado
-  // ========================================
-  if (chatState.phase === 'assigned' && chatState.lawyer) {
-    showTyping(chatState.lawyer.nombre);
-    await sleep(2000);
-    hideTyping();
-    
-    const respuesta = generarRespuestaInteligente(text, chatState.selectedArea);
-    addBubble('bot', respuesta, chatState.lawyer.avatar);
-  }
-}
-
-// ========================================
-// FUNCIONES AUXILIARES UI
-// ========================================
-
-function addBubble(type, html, avatar) {
-  const container = document.getElementById('chat-messages');
-  const wrap = document.createElement('div');
-
-  if (type === 'system') {
-    wrap.style.cssText = 'align-self:center;max-width:90%;text-align:center;margin:0.5rem 0;';
-    wrap.innerHTML = `<div class="bubble system" style="background:transparent;border:1px dashed var(--gold-border);color:var(--text-muted);font-size:.78rem;font-style:italic;padding:.5rem;border-radius:2px;">${html}</div>`;
-  } else {
-    wrap.className = `chat-bubble-wrap ${type}`;
-    const now = new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
-    const ava = type === 'user'
-      ? `<div class="bubble-avatar">${(chatState.userName || 'U')[0].toUpperCase()}</div>`
-      : `<div class="bubble-avatar">${avatar || '🤖'}</div>`;
-    wrap.innerHTML = `
-      ${ava}
-      <div>
-        <div class="bubble ${type}" style="white-space: pre-line;">${html}</div>
-        <div class="bubble-time">${now}</div>
-      </div>`;
-  }
-
-  container.appendChild(wrap);
-  container.scrollTop = container.scrollHeight;
-}
-
-function showTyping(name) {
-  chatState.typing = true;
-  document.getElementById('chat-typing').style.display = 'block';
-  document.getElementById('chat-typing').textContent = `${name || 'Abogado'} está escribiendo…`;
-}
-
-function hideTyping() {
-  chatState.typing = false;
-  document.getElementById('chat-typing').style.display = 'none';
-}
-
-function sleep(ms) {
-  return new Promise(r => setTimeout(r, ms));
-}
+    } else if (respuesta
