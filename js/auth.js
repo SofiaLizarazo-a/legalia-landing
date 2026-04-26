@@ -1,4 +1,6 @@
-const usuariosDB = {};
+// ============================================
+// LEGALIA - AUTENTICACIÓN CON BASE DE DATOS
+// ============================================
 
 function esEmailValido(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
@@ -11,12 +13,16 @@ function getLoginType() {
   return t.includes('admin') ? 'administrador' : (t.includes('abogado') ? 'abogado' : 'cliente');
 }
 
-function doLogin() {
+// ============================================
+// INICIAR SESIÓN CON BASE DE DATOS
+// ============================================
+async function doLogin() {
   clearModalError('loginModal');
   const email = document.querySelector('#loginModal input[type="email"]').value.trim();
   const pass = document.querySelector('#loginModal input[type="password"]').value.trim();
   const role = getLoginType();
 
+  // Validaciones
   if (!email && !pass) {
     showModalError('loginModal', 'Por favor ingresa tu correo y contraseña.');
     return;
@@ -34,21 +40,32 @@ function doLogin() {
     return;
   }
 
-  const key = email.toLowerCase() + '_' + role;
-  if (!usuariosDB[key]) {
-    showModalError('loginModal', 'No existe una cuenta con ese correo para el perfil seleccionado. ¿Ya te registraste?');
-    return;
-  }
-  if (usuariosDB[key].password !== pass) {
-    showModalError('loginModal', 'La contraseña es incorrecta. Intenta de nuevo.');
-    return;
-  }
+  try {
+    // Verificar si la base de datos está lista
+    if (!window.db) {
+      showModalError('loginModal', 'La base de datos no está inicializada. Recarga la página.');
+      return;
+    }
 
-  closeModal('loginModal');
-  showDashboard(role, usuariosDB[key].nombre);
+    // Autenticar usuario
+    const usuario = await window.db.usuarios.autenticar(email, pass, role);
+    
+    // Guardar usuario actual
+    window.db.setUsuarioActual(usuario);
+    
+    // Cerrar modal y mostrar dashboard
+    closeModal('loginModal');
+    showDashboard(role, usuario.nombre);
+    
+  } catch (error) {
+    showModalError('loginModal', error.message);
+  }
 }
 
-function doRegister() {
+// ============================================
+// REGISTRAR USUARIO CON BASE DE DATOS
+// ============================================
+async function doRegister() {
   clearModalError('registerModal');
   const nombre = document.querySelector('#registerModal input[placeholder="Tu nombre"]').value.trim();
   const apellido = document.querySelector('#registerModal input[placeholder="Tu apellido"]').value.trim();
@@ -56,6 +73,7 @@ function doRegister() {
   const pass = document.querySelector('#registerModal input[type="password"]').value.trim();
   const role = document.querySelector('.user-type-btn.active').id.replace('reg-', '');
 
+  // Validaciones básicas
   if (!nombre) {
     showModalError('registerModal', 'El nombre es obligatorio.');
     return;
@@ -81,6 +99,7 @@ function doRegister() {
     return;
   }
 
+  // Validaciones específicas para abogado
   if (role === 'abogado') {
     const tarjeta = document.querySelector('#registerModal input[placeholder="Número de tarjeta profesional"]').value.trim();
     const especialidad = document.querySelector('#registerModal select').value;
@@ -94,43 +113,81 @@ function doRegister() {
     }
   }
 
-  const key = email.toLowerCase() + '_' + role;
-  if (usuariosDB[key]) {
-    showModalError('registerModal', 'Ya existe una cuenta con ese correo para este perfil.');
-    return;
+  try {
+    // Verificar si la base de datos está lista
+    if (!window.db) {
+      showModalError('registerModal', 'La base de datos no está inicializada. Recarga la página.');
+      return;
+    }
+
+    // Crear usuario en la base de datos
+    const nuevoUsuario = await window.db.usuarios.crear(nombre, apellido, email, pass, role);
+    
+    // Cerrar modal de registro
+    closeModal('registerModal');
+
+    // Limpiar campos del formulario
+    document.querySelector('#registerModal input[placeholder="Tu nombre"]').value = '';
+    document.querySelector('#registerModal input[placeholder="Tu apellido"]').value = '';
+    document.querySelector('#registerModal input[type="email"]').value = '';
+    document.querySelector('#registerModal input[type="password"]').value = '';
+    if (role === 'abogado') {
+      document.querySelector('#registerModal input[placeholder="Número de tarjeta profesional"]').value = '';
+      document.querySelector('#registerModal select').value = '';
+    }
+
+    // Abrir modal de login y pre-llenar email
+    openModal('login', null, true);
+
+    // Seleccionar el tab correcto según el rol
+    const tabs = document.querySelectorAll('#loginModal .modal-tab');
+    tabs.forEach(t => t.classList.remove('active'));
+    tabs.forEach(t => {
+      const txt = t.textContent.trim().toLowerCase();
+      if (role === 'cliente' && txt === 'cliente') t.classList.add('active');
+      else if (role === 'abogado' && txt === 'abogado') t.classList.add('active');
+      else if (role === 'abogado' && txt.includes('abogado')) t.classList.add('active');
+      else if ((role === 'administrador' || role === 'admin') && txt.includes('admin')) t.classList.add('active');
+    });
+
+    // Pre-llenar email
+    document.querySelector('#loginModal input[type="email"]').value = email;
+    document.querySelector('#loginModal input[type="password"]').value = '';
+
+    // Mostrar mensaje de éxito
+    showModalSuccess('loginModal', '✓ Cuenta creada exitosamente. Ingresa tu contraseña para continuar.');
+    
+  } catch (error) {
+    showModalError('registerModal', error.message);
   }
+}
 
-  usuariosDB[key] = { nombre, apellido, email: email.toLowerCase(), password: pass, role };
+// ============================================
+// CERRAR SESIÓN
+// ============================================
+function doLogout() {
+  window.db.setUsuarioActual(null);
+  closeDashboard();
+  // Recargar la página para reiniciar el estado
+  location.reload();
+}
 
-  closeModal('registerModal');
-
-  document.querySelector('#registerModal input[placeholder="Tu nombre"]').value = '';
-  document.querySelector('#registerModal input[placeholder="Tu apellido"]').value = '';
-  document.querySelector('#registerModal input[type="email"]').value = '';
-  document.querySelector('#registerModal input[type="password"]').value = '';
-
-  openModal('login', null, true);
-
-  const tabs = document.querySelectorAll('#loginModal .modal-tab');
-  tabs.forEach(t => t.classList.remove('active'));
-  tabs.forEach(t => {
-    const txt = t.textContent.trim().toLowerCase();
-    if (role === 'cliente' && txt === 'cliente') t.classList.add('active');
-    else if (role === 'abogado' && txt === 'abogado') t.classList.add('active');
-    else if (role === 'abogado' && txt.includes('abogado')) t.classList.add('active');
-    else if ((role === 'administrador' || role === 'admin') && txt.includes('admin')) t.classList.add('active');
-  });
-
-  document.querySelector('#loginModal input[type="email"]').value = email;
-  document.querySelector('#loginModal input[type="password"]').value = '';
-
-  let ok = document.querySelector('#loginModal .modal-ok');
+// ============================================
+// FUNCIONES AUXILIARES
+// ============================================
+function showModalSuccess(modalId, msg) {
+  let ok = document.querySelector('#' + modalId + ' .modal-ok');
   if (!ok) {
     ok = document.createElement('p');
     ok.className = 'modal-ok';
     ok.style.cssText = 'color:#27ae60;font-size:.78rem;margin-bottom:.8rem;text-align:center;padding:.5rem;border:1px solid rgba(39,174,96,.3);background:rgba(39,174,96,.06);';
-    document.querySelector('#loginModal .form-field').before(ok);
+    const formField = document.querySelector('#' + modalId + ' .form-field');
+    if (formField) {
+      formField.before(ok);
+    } else {
+      document.querySelector('#' + modalId + ' .modal').appendChild(ok);
+    }
   }
-  ok.textContent = '✓ Cuenta creada exitosamente. Ingresa tu contraseña para continuar.';
+  ok.textContent = msg;
   ok.style.display = 'block';
 }
