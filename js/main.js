@@ -1,8 +1,3 @@
-// ============================================
-// LEGALIA - MÓDULO PRINCIPAL
-// Temas, modals, accordions, scroll reveal
-// ============================================
-
 function toggleAccordion(btn) {
   const item = btn.closest('.accordion-item');
   const isOpen = item.classList.contains('open');
