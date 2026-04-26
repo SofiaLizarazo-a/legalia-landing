@@ -171,7 +171,12 @@ footer{padding:2.5rem 5vw;border-top:1px solid var(--gold-border);display:flex;a
 }
 
 
+/* ============================================
+   LOGO - DEFINITIVO BLANCO
+   ============================================ */
+
 .logo-icon img {
+  background: transparent;
   opacity: 1;
 }
 
@@ -184,5 +189,5 @@ footer{padding:2.5rem 5vw;border-top:1px solid var(--gold-border);display:flex;a
 }
 
 [data-theme="dark"] .logo-icon img {
-  filter: brightness(0) invert(1) brightness(1.2);
+  filter: grayscale(1) brightness(4) contrast(2.5);
 }
