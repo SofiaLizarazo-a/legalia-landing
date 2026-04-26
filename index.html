@@ -308,18 +308,33 @@
 <script src="js/chat.js"></script>
 
 <script>
-  // Inicializar base de datos
-  document.addEventListener('DOMContentLoaded', async () => {
-    console.log('🔄 Inicializando base de datos...');
+  // Esperar a que TODO el HTML cargue
+  document.addEventListener('DOMContentLoaded', async function() {
+    console.log('📦 Inicializando sistema...');
+    
+    // Verificar que window.db existe
+    if (!window.db || !window.db.iniciar) {
+      console.error('❌ Error crítico: window.db no está disponible');
+      alert('Error: La base de datos no cargó correctamente. Recarga la página.');
+      return;
+    }
+    
     try {
-      if (window.db && window.db.iniciar) {
-        await window.db.iniciar();
-        console.log('✅ Base de datos conectada correctamente');
-      } else {
-        console.error('❌ window.db no está disponible');
-      }
+      // Inicializar base de datos
+      console.log('🔄 Conectando a IndexedDB...');
+      await window.db.iniciar();
+      console.log('✅ Base de datos lista');
+      
+      // Opcional: mostrar indicador de éxito
+      const indicator = document.createElement('div');
+      indicator.textContent = '✅ Sistema listo';
+      indicator.style.cssText = 'position:fixed;bottom:10px;right:10px;background:#27ae60;color:white;padding:4px 12px;border-radius:20px;font-size:11px;z-index:9999;font-family:sans-serif;';
+      document.body.appendChild(indicator);
+      setTimeout(() => indicator.remove(), 2000);
+      
     } catch (error) {
       console.error('❌ Error al inicializar la base de datos:', error);
+      alert('Error al conectar con la base de datos. Recarga la página.');
     }
   });
 </script>
