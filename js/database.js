@@ -15,7 +15,7 @@ const ADMIN_PREDETERMINADO = {
   nombre: 'Administrador',
   apellido: 'Legalia',
   email: 'admin@legalia.com',
-  password: 'Admin123', // En producción esto debería estar encriptado
+  password: 'Admin123',
   role: 'administrador',
   fechaRegistro: new Date().toISOString(),
   activo: true
@@ -35,11 +35,18 @@ function iniciarBaseDatos() {
     
     request.onsuccess = (event) => {
       db = event.target.result;
-      console.log('Base de datos conectada correctamente');
+      
+      // 🔥 LÍNEA CRÍTICA: expone la conexión de la BD para que auth.js pueda esperarla
+      window.db._db = db;
+      
+      console.log('✅ Base de datos conectada correctamente');
       
       // Inicializar administrador predefinido si no existe
       inicializarAdministrador().then(() => {
         resolve(db);
+      }).catch(err => {
+        console.warn('Error al inicializar admin:', err);
+        resolve(db); // Resolvemos igual para no bloquear
       });
     };
     
@@ -55,7 +62,7 @@ function iniciarBaseDatos() {
         const usuariosStore = db.createObjectStore('usuarios', { keyPath: 'email' });
         usuariosStore.createIndex('role', 'role', { unique: false });
         usuariosStore.createIndex('nombre', 'nombre', { unique: false });
-        console.log('Tabla "usuarios" creada');
+        console.log('✅ Tabla "usuarios" creada');
       }
       
       // Tabla de CONVERSACIONES
@@ -63,7 +70,7 @@ function iniciarBaseDatos() {
         const conversacionesStore = db.createObjectStore('conversaciones', { keyPath: 'id', autoIncrement: true });
         conversacionesStore.createIndex('usuarioEmail', 'usuarioEmail', { unique: false });
         conversacionesStore.createIndex('fecha', 'fecha', { unique: false });
-        console.log('Tabla "conversaciones" creada');
+        console.log('✅ Tabla "conversaciones" creada');
       }
       
       // Tabla de DOCUMENTOS
@@ -72,7 +79,7 @@ function iniciarBaseDatos() {
         documentosStore.createIndex('usuarioEmail', 'usuarioEmail', { unique: false });
         documentosStore.createIndex('estado', 'estado', { unique: false });
         documentosStore.createIndex('casoId', 'casoId', { unique: false });
-        console.log('Tabla "documentos" creada');
+        console.log('✅ Tabla "documentos" creada');
       }
       
       // Tabla de CASOS
@@ -82,7 +89,7 @@ function iniciarBaseDatos() {
         casosStore.createIndex('abogadoEmail', 'abogadoEmail', { unique: false });
         casosStore.createIndex('estado', 'estado', { unique: false });
         casosStore.createIndex('fechaCreacion', 'fechaCreacion', { unique: false });
-        console.log('Tabla "casos" creada');
+        console.log('✅ Tabla "casos" creada');
       }
       
       // Tabla de NOTIFICACIONES
@@ -90,7 +97,7 @@ function iniciarBaseDatos() {
         const notificacionesStore = db.createObjectStore('notificaciones', { keyPath: 'id', autoIncrement: true });
         notificacionesStore.createIndex('usuarioEmail', 'usuarioEmail', { unique: false });
         notificacionesStore.createIndex('leida', 'leida', { unique: false });
-        console.log('Tabla "notificaciones" creada');
+        console.log('✅ Tabla "notificaciones" creada');
       }
     };
   });
@@ -100,19 +107,23 @@ function iniciarBaseDatos() {
 // INICIALIZAR ADMINISTRADOR PREDETERMINADO
 // ============================================
 async function inicializarAdministrador() {
-  const adminExiste = await obtenerUsuarioPorEmail(ADMIN_PREDETERMINADO.email);
-  
-  if (!adminExiste) {
-    await crearUsuario(
-      ADMIN_PREDETERMINADO.nombre,
-      ADMIN_PREDETERMINADO.apellido,
-      ADMIN_PREDETERMINADO.email,
-      ADMIN_PREDETERMINADO.password,
-      ADMIN_PREDETERMINADO.role
-    );
-    console.log('✅ Administrador predefinido creado:', ADMIN_PREDETERMINADO.email);
-  } else {
-    console.log('✅ Administrador ya existe');
+  try {
+    const adminExiste = await obtenerUsuarioPorEmail(ADMIN_PREDETERMINADO.email);
+    
+    if (!adminExiste) {
+      await crearUsuario(
+        ADMIN_PREDETERMINADO.nombre,
+        ADMIN_PREDETERMINADO.apellido,
+        ADMIN_PREDETERMINADO.email,
+        ADMIN_PREDETERMINADO.password,
+        ADMIN_PREDETERMINADO.role
+      );
+      console.log('✅ Administrador predefinido creado:', ADMIN_PREDETERMINADO.email);
+    } else {
+      console.log('✅ Administrador ya existe');
+    }
+  } catch (error) {
+    console.error('❌ Error al inicializar administrador:', error);
   }
 }
 
@@ -140,7 +151,7 @@ function crearUsuario(nombre, apellido, email, password, role = 'cliente') {
         nombre,
         apellido,
         email: email.toLowerCase(),
-        password, // En producción, encriptar antes de guardar
+        password,
         role,
         fechaRegistro: new Date().toISOString(),
         activo: true,
@@ -497,6 +508,7 @@ function obtenerNotificacionesUsuario(usuarioEmail) {
 // ============================================
 window.db = {
   iniciar: iniciarBaseDatos,
+  _db: null, // Será asignado cuando la BD se conecte
   usuarios: {
     crear: crearUsuario,
     obtener: obtenerUsuarioPorEmail,
