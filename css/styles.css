@@ -186,3 +186,26 @@ footer{padding:2.5rem 5vw;border-top:1px solid var(--gold-border);display:flex;a
   filter: none;
   opacity: 1;
 }
+/* ============================================
+   LOGO - VISIBLE SIEMPRE
+   ============================================ */
+
+/* Modo oscuro: logo siempre brillante */
+[data-theme="dark"] .logo-icon img,
+[data-theme="dark"] .logo-icon img:hover {
+  filter: brightness(1.6) saturate(1.4) !important;
+  opacity: 1 !important;
+  transition: none !important;
+}
+
+/* Modo claro: logo normal */
+[data-theme="light"] .logo-icon img,
+[data-theme="light"] .logo-icon img:hover {
+  filter: none !important;
+  opacity: 1 !important;
+}
+
+/* Quitar cualquier otro hover que pueda existir */
+.logo-icon:hover img {
+  filter: inherit !important;
+}
