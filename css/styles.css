@@ -171,11 +171,11 @@ footer{padding:2.5rem 5vw;border-top:1px solid var(--gold-border);display:flex;a
 }
 
 /* ============================================
-   LOGO - FORZAR BRILLO Y COLOR
+   LOGO - MODO OSCURO (INVERTIR + DORADO)
    ============================================ */
 
 [data-theme="dark"] .logo-icon img {
-  filter: brightness(2.5) sepia(1) hue-rotate(-5deg) saturate(8) contrast(1.2);
+  filter: brightness(0) invert(1) brightness(0.8) sepia(1) hue-rotate(-5deg) saturate(8);
   opacity: 1;
 }
 
