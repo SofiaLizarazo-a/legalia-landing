@@ -171,13 +171,20 @@ footer{padding:2.5rem 5vw;border-top:1px solid var(--gold-border);display:flex;a
 }
 
 
-/* PRUEBA 1 - Sin filtros */
-.logo-icon img {
-  filter: none !important;
-  opacity: 1 !important;
+/* ============================================
+   CONVERTIR LOGO A DORADO EN MODO OSCURO
+   ============================================ */
+
+[data-theme="dark"] .logo-icon img {
+  filter: sepia(1) hue-rotate(-5deg) saturate(8) brightness(1.5) contrast(1.2);
+  opacity: 1;
+}
+
+[data-theme="light"] .logo-icon img {
+  filter: none;
+  opacity: 1;
 }
 
 .logo:hover .logo-icon {
-  opacity: 1 !important;
+  opacity: 1;
 }
-
