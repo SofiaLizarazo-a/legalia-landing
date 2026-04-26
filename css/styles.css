@@ -189,5 +189,5 @@ footer{padding:2.5rem 5vw;border-top:1px solid var(--gold-border);display:flex;a
 }
 
 [data-theme="dark"] .logo-icon img {
-  filter: grayscale(1) brightness(4) contrast(2.5);
+  filter: grayscale(3) brightness(4) contrast(1.5);
 }
