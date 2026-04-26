@@ -359,3 +359,21 @@ footer{padding:2.5rem 5vw;border-top:1px solid var(--gold-border);display:flex;a
 .doc-modal-overlay.active {
   display: block;
 }
+/* DASHBOARD SCROLL */
+#dashboardOverlay {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  align-items: flex-start !important;
+  padding: 0 !important;
+}
+
+#dashboardOverlay > div {
+  min-height: 100vh;
+  height: auto;
+  overflow-y: visible;
+  padding-bottom: 3rem;
+}
+
+#dash-grid {
+  margin-bottom: 3rem;
+}
