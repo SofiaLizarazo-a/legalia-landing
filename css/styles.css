@@ -8,7 +8,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0.8rem 5vw;background:var(--nav-bg);backdrop-filter:blur(18px);border-bottom:1px solid var(--gold-border);animation:fadeDown .7s ease both;transition:background .4s ease,border-color .4s ease}
 .logo{display:flex;align-items:center;gap:0;text-decoration:none;flex-shrink:0}
 .logo-icon{display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity .3s}
-.logo:hover .logo-icon{opacity:.1}
+.logo:hover .logo-icon{opacity:1}
 .logo-icon img{height:52px;width:auto;display:block}
 .nav-right{display:flex;flex-direction:column;align-items:flex-end;gap:0.25rem}
 .nav-frase{font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);opacity:.85;font-family:'Cormorant Garamond',serif;font-style:italic;white-space:nowrap}
@@ -169,21 +169,25 @@ footer{padding:2.5rem 5vw;border-top:1px solid var(--gold-border);display:flex;a
   background: transparent;
   mix-blend-mode: multiply;
 }
-
 /* ============================================
-   LOGO - MODO OSCURO (INVERTIR + DORADO)
+   LOGO - CORREGIDO
    ============================================ */
 
+.logo-icon img {
+  background: transparent;
+  mix-blend-mode: multiply;
+}
+
+.logo:hover .logo-icon {
+  opacity: 1;  /* ← CAMBIADO DE 0.1 A 1 */
+}
+
 [data-theme="dark"] .logo-icon img {
-  filter: brightness(0) invert(1) brightness(0.8) sepia(1) hue-rotate(-5deg) saturate(8);
+  filter: brightness(0) invert(1) brightness(2.5) sepia(1) hue-rotate(-5deg) saturate(12);
   opacity: 1;
 }
 
 [data-theme="light"] .logo-icon img {
   filter: none;
-  opacity: 1;
-}
-
-.logo:hover .logo-icon {
   opacity: 1;
 }
