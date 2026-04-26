@@ -170,20 +170,19 @@ footer{padding:2.5rem 5vw;border-top:1px solid var(--gold-border);display:flex;a
   mix-blend-mode: multiply;
 }
 /* ============================================
-   LOGO - CORREGIDO
+   LOGO - COLORES ORIGINALES EN AMBOS MODOS
    ============================================ */
 
 .logo-icon img {
   background: transparent;
-  mix-blend-mode: multiply;
 }
 
 .logo:hover .logo-icon {
-  opacity: 1;  /* ← CAMBIADO DE 0.1 A 1 */
+  opacity: 1;
 }
 
 [data-theme="dark"] .logo-icon img {
-  filter: brightness(0) invert(1) brightness(2.5) sepia(1) hue-rotate(-5deg) saturate(12);
+  filter: brightness(1.1) contrast(1.05);
   opacity: 1;
 }
 
