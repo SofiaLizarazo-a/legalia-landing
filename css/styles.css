@@ -171,19 +171,23 @@ footer{padding:2.5rem 5vw;border-top:1px solid var(--gold-border);display:flex;a
 }
 
 
-
+/* LOGO - SIEMPRE VISIBLE */
 .logo-icon img {
-  filter: brightness(2) saturate(1.5) !important;
-  opacity: 1 !important;
+  filter: brightness(2) saturate(1.5);
+  opacity: 1;
 }
 
 .logo:hover .logo-icon img {
-  filter: brightness(2) saturate(1.5) !important;
-  opacity: 1 !important;
+  filter: brightness(2) saturate(1.5);
+  opacity: 1;
+}
+
+.logo:hover .logo-icon {
+  opacity: 1;
 }
 
 [data-theme="light"] .logo-icon img,
 [data-theme="light"] .logo:hover .logo-icon img {
-  filter: brightness(1.1) !important;
+  filter: brightness(1.1);
 }
 
