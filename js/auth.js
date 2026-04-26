@@ -1,8 +1,3 @@
-// ============================================
-// LEGALIA - AUTENTICACIÓN
-// Registro, login y gestión de usuarios
-// ============================================
-
 const usuariosDB = {};
 
 function esEmailValido(email) {
