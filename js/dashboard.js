@@ -1,8 +1,3 @@
-// ============================================
-// LEGALIA - DASHBOARD
-// Pantalla principal después del login
-// ============================================
-
 function showDashboard(role, name) {
   const dashboardOverlay = document.getElementById('dashboardOverlay');
   document.getElementById('dash-name').textContent = name;
