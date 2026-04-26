@@ -306,5 +306,22 @@
 <script src="js/auth.js"></script>
 <script src="js/dashboard.js"></script>
 <script src="js/chat.js"></script>
+
+<script>
+  // Inicializar base de datos
+  document.addEventListener('DOMContentLoaded', async () => {
+    console.log('🔄 Inicializando base de datos...');
+    try {
+      if (window.db && window.db.iniciar) {
+        await window.db.iniciar();
+        console.log('✅ Base de datos conectada correctamente');
+      } else {
+        console.error('❌ window.db no está disponible');
+      }
+    } catch (error) {
+      console.error('❌ Error al inicializar la base de datos:', error);
+    }
+  });
+</script>
 </body>
 </html>
