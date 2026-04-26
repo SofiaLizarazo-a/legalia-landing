@@ -169,24 +169,20 @@ footer{padding:2.5rem 5vw;border-top:1px solid var(--gold-border);display:flex;a
   background: transparent;
   mix-blend-mode: multiply;
 }
-/* ============================================
-   LOGO - COLORES ORIGINALES EN AMBOS MODOS
-   ============================================ */
+
 
 .logo-icon img {
-  background: transparent;
+  opacity: 1;
 }
 
 .logo:hover .logo-icon {
   opacity: 1;
 }
 
-[data-theme="dark"] .logo-icon img {
-  filter: brightness(1.1) contrast(1.05);
-  opacity: 1;
-}
-
 [data-theme="light"] .logo-icon img {
   filter: none;
-  opacity: 1;
+}
+
+[data-theme="dark"] .logo-icon img {
+  filter: brightness(0) invert(1) brightness(1.2);
 }
