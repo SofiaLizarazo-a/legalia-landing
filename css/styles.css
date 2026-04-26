@@ -200,21 +200,36 @@ footer{padding:2.5rem 5vw;border-top:1px solid var(--gold-border);display:flex;a
 
 
 /* ============================================
-   LOGO + TEXTO DORADO ELEGANTE
+   LOGO + TEXTO DORADO - PEGADO
    ============================================ */
 
 .logo {
   display: flex;
   align-items: center;
-  gap: 0.35rem;  /* Más pegado al logo */
+  gap: 0;
   text-decoration: none;
+}
+
+.logo-icon {
+  display: flex;
+  align-items: center;
+  margin-right: 0;
+  padding-right: 0;
+}
+
+.logo-icon img {
+  height: 52px;
+  width: auto;
+  display: block;
 }
 
 .logo-legalia {
   font-family: 'Cormorant Garamond', Georgia, serif;
   font-size: 1.5rem;
   font-weight: 500;
-  letter-spacing: 3px;  /* Espaciado elegante pero no excesivo */
+  letter-spacing: 2px;
+  margin-left: 0;
+  padding-left: 2px;  /* Solo 2px de separación visual */
   
   /* Dorado elegante */
   background: linear-gradient(135deg, #d4af37 0%, #b8942a 40%, #8b6914 60%, #d4af37 100%);
@@ -222,21 +237,16 @@ footer{padding:2.5rem 5vw;border-top:1px solid var(--gold-border);display:flex;a
   background-clip: text;
   color: transparent;
   
-  /* Sombra para profundidad */
   text-shadow: 0 1px 2px rgba(0,0,0,0.15);
-  
   transition: all 0.3s ease;
 }
 
-/* Efecto hover suave */
 .logo:hover .logo-legalia {
   background: linear-gradient(135deg, #e8c84a 0%, #c4a22a 50%, #e8c84a 100%);
   -webkit-background-clip: text;
   background-clip: text;
-  letter-spacing: 4px;
 }
 
-/* Modo oscuro: dorado más brillante */
 [data-theme="dark"] .logo-legalia {
   background: linear-gradient(135deg, #f2d86a 0%, #d4af37 40%, #b8942a 70%, #f2d86a 100%);
   -webkit-background-clip: text;
@@ -244,7 +254,6 @@ footer{padding:2.5rem 5vw;border-top:1px solid var(--gold-border);display:flex;a
   text-shadow: 0 0 8px rgba(212, 175, 55, 0.4);
 }
 
-/* Modo claro: dorado clásico */
 [data-theme="light"] .logo-legalia {
   background: linear-gradient(135deg, #c9a84c 0%, #a07c1a 50%, #c9a84c 100%);
   -webkit-background-clip: text;
