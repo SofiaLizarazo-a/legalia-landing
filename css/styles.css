@@ -8,7 +8,7 @@ body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;fon
 nav{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0.8rem 5vw;background:var(--nav-bg);backdrop-filter:blur(18px);border-bottom:1px solid var(--gold-border);animation:fadeDown .7s ease both;transition:background .4s ease,border-color .4s ease}
 .logo{display:flex;align-items:center;gap:0;text-decoration:none;flex-shrink:0}
 .logo-icon{display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity .3s}
-.logo:hover .logo-icon{opacity:.8}
+.logo:hover .logo-icon{opacity:.1}
 .logo-icon img{height:52px;width:auto;display:block}
 .nav-right{display:flex;flex-direction:column;align-items:flex-end;gap:0.25rem}
 .nav-frase{font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);opacity:.85;font-family:'Cormorant Garamond',serif;font-style:italic;white-space:nowrap}
@@ -186,26 +186,13 @@ footer{padding:2.5rem 5vw;border-top:1px solid var(--gold-border);display:flex;a
   filter: none;
   opacity: 1;
 }
-/* ============================================
-   LOGO - VISIBLE SIEMPRE
-   ============================================ */
-
-/* Modo oscuro: logo siempre brillante */
-[data-theme="dark"] .logo-icon img,
-[data-theme="dark"] .logo-icon img:hover {
-  filter: brightness(1.6) saturate(1.4) !important;
-  opacity: 1 !important;
-  transition: none !important;
+/* Logo brillante en modo oscuro */
+[data-theme="dark"] .logo-icon img {
+  filter: brightness(1.5) saturate(1.3);
+  opacity: 1;
 }
 
-/* Modo claro: logo normal */
-[data-theme="light"] .logo-icon img,
-[data-theme="light"] .logo-icon img:hover {
-  filter: none !important;
-  opacity: 1 !important;
-}
-
-/* Quitar cualquier otro hover que pueda existir */
-.logo-icon:hover img {
-  filter: inherit !important;
+[data-theme="light"] .logo-icon img {
+  filter: none;
+  opacity: 1;
 }
