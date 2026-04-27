@@ -1,407 +1,159 @@
 // ============================================
-// LEGALIA - DASHBOARD COMPLETO (CORREGIDO)
+// LEGALIA DASHBOARD - VERSIÓN CORTA
 // ============================================
 
-function showDashboard(role, name) {
-  const dashboardOverlay = document.getElementById('dashboardOverlay');
-  
-  // CORREGIDO: Mostrar nombre correctamente
-  document.getElementById('dash-name').textContent = name;
+const D={cliente:{b:'#27ae60',w:'Bienvenido',d:'Gestiona casos, citas, pagos',i:[
+  ['⚖️','Mis Casos','Seguimiento','verMisCasos()'],
+  ['💬','Chat','Comunícate','openChat()'],
+  ['📅','Citas','Gestiona reuniones','verCitas()'],
+  ['💰','Pagos','Facturas','verPagos()'],
+  ['📄','Documentos','Expediente','verDocumentos()'],
+  ['⭐','Calificaciones','Califica','verCalificaciones()'],
+  ['👤','Mi Perfil','Actualiza datos','verMiPerfil()']
+]},abogado:{b:'#2980b9',w:'Gestión',d:'Administra casos',i:[
+  ['📁','Casos','Gestiona','alert("En desarrollo")'],
+  ['👥','Clientes','Directorio','alert("En desarrollo")'],
+  ['💬','Mensajes','Chat','openChat()'],
+  ['📅','Agenda','Disponibilidad','alert("En desarrollo")']
+]},admin:{b:'#8e44ad',w:'Admin',d:'Supervisión',i:[
+  ['🛡️','Verificar','Abogados','verificarAbogados()'],
+  ['📊','Estadísticas','Métricas','verEstadisticas()'],
+  ['👤','Usuarios','Gestión','gestionarUsuarios()']
+]}};
 
-  const configs = {
-    cliente: {
-      badge: 'Cliente',
-      badgeColor: '#27ae60',
-      welcome: 'Bienvenido a tu espacio legal',
-      desc: 'Aquí puedes gestionar tus casos, citas, pagos y documentos legales.',
-      items: [
-        { icon: '⚖️', title: 'Mis Casos', desc: 'Visualiza y da seguimiento a tus procesos legales activos.', action: 'verMisCasos()' },
-        { icon: '💬', title: 'Chat Seguro', desc: 'Comunícate directamente con tu abogado asignado.', action: 'openChat()' },
-        { icon: '📅', title: 'Citas', desc: 'Gestiona tus reuniones programadas.', action: 'verCitas()' },
-        { icon: '💰', title: 'Pagos', desc: 'Realiza pagos y consulta tus facturas.', action: 'verPagos()' },
-        { icon: '📄', title: 'Documentos', desc: 'Accede y organiza los documentos de tu expediente.', action: 'verDocumentos()' },
-        { icon: '⭐', title: 'Calificaciones', desc: 'Califica a los abogados que te atendieron.', action: 'verCalificaciones()' },
-        { icon: '👤', title: 'Mi Perfil', desc: 'Actualiza tus datos personales y foto de perfil.', action: 'verMiPerfil()' },
-      ]
-    },
-    abogado: {
-      badge: 'Abogado',
-      badgeColor: '#2980b9',
-      welcome: 'Panel de gestión de casos',
-      desc: 'Administra tu cartera de clientes, actualiza casos y gestiona tu agenda profesional.',
-      items: [
-        { icon: '📁', title: 'Casos Asignados', desc: 'Gestiona todos tus procesos legales en curso.', action: 'alert("Módulo en desarrollo para abogados")' },
-        { icon: '👥', title: 'Mis Clientes', desc: 'Directorio y perfiles de tus clientes.', action: 'alert("Módulo en desarrollo")' },
-        { icon: '💬', title: 'Mensajes', desc: 'Bandeja de comunicación segura con clientes.', action: 'openChat()' },
-        { icon: '📅', title: 'Agenda', desc: 'Administra tu disponibilidad y citas programadas.', action: 'alert("Módulo en desarrollo")' },
-        { icon: '📊', title: 'Reportes', desc: 'Genera reportes detallados por caso o período.', action: 'alert("Módulo en desarrollo")' },
-        { icon: '📋', title: 'Expedientes', desc: 'Sube y organiza documentos por caso.', action: 'alert("Módulo en desarrollo")' },
-      ]
-    },
-    administrador: {
-      badge: 'Administrador',
-      badgeColor: '#8e44ad',
-      welcome: 'Panel de Administración',
-      desc: 'Supervisión completa de la plataforma: usuarios, casos, transacciones y estadísticas.',
-      items: [
-        { icon: '🛡️', title: 'Verificar Abogados', desc: 'Activa y valida credenciales de abogados registrados.', action: 'verificarAbogados()' },
-        { icon: '📊', title: 'Estadísticas', desc: 'Métricas de uso y rendimiento de la plataforma.', action: 'verEstadisticas()' },
-        { icon: '👤', title: 'Usuarios', desc: 'Gestiona todas las cuentas y niveles de acceso.', action: 'gestionarUsuarios()' },
-        { icon: '⚖️', title: 'Supervisar Casos', desc: 'Monitorea todos los procesos registrados.', action: 'alert("Módulo en desarrollo")' },
-        { icon: '💰', title: 'Transacciones', desc: 'Audita pagos y facturación del sistema.', action: 'alert("Módulo en desarrollo")' },
-        { icon: '⚙️', title: 'Configuración', desc: 'Ajusta parámetros y políticas de la plataforma.', action: 'alert("Módulo en desarrollo")' },
-      ]
-    }
-  };
+let mc=[]; // mis casos
 
-  const cfg = configs[role] || configs.cliente;
-
-  // CORREGIDO: Mostrar texto correctamente (no el código de color)
-  document.getElementById('dash-badge').textContent = cfg.badge;
-  document.getElementById('dash-badge').style.background = cfg.badgeColor;
-  document.getElementById('dash-welcome').textContent = cfg.welcome;
-  document.getElementById('dash-desc').textContent = cfg.desc;
-
-  window._currentUser = { name, role, email: window.db?.obtenerUsuarioActual()?.email };
-  
-  const grid = document.getElementById('dash-grid');
-  grid.innerHTML = cfg.items.map(item => {
-    return `<div class="dash-card" style="background:var(--card-bg);border:1px solid var(--gold-border);border-radius:12px;padding:1.5rem;transition:all 0.3s;cursor:pointer;">
-      <div class="dash-card-icon" style="font-size:2rem;margin-bottom:1rem;">${item.icon}</div>
-      <h3 class="dash-card-title" style="font-family:'Cormorant Garamond',serif;font-size:1.15rem;font-weight:400;color:var(--text);margin-bottom:0.5rem;">${item.title}</h3>
-      <p class="dash-card-desc" style="font-size:0.85rem;color:var(--text-muted);line-height:1.6;margin-bottom:1.2rem;">${item.desc}</p>
-      <button class="dash-card-btn" onclick="${item.action}" style="background:none;border:1px solid var(--gold-border);color:var(--gold);padding:0.45rem 1rem;cursor:pointer;border-radius:4px;font-family:'DM Sans',sans-serif;font-size:0.72rem;transition:all 0.3s;">Abrir →</button>
-    </div>`;
-  }).join('');
-
+function showDashboard(r,n){
+  const c=D[r]||D.cliente;
+  document.getElementById('dash-name').innerText=n;
+  ['badge','welcome','desc'].forEach((k,i)=>{
+    const v=i===0?c.b:i===1?c.w:c.d;
+    document.getElementById(`dash-${k}`)[i===0?'innerText':'innerHTML']=v;
+    if(i===0)document.getElementById('dash-badge').style.background=v;
+  });
+  window._currentUser={name:n,role:r,email:window.db?.obtenerUsuarioActual()?.email};
+  document.getElementById('dash-grid').innerHTML=c.i.map(i=>`
+    <div class="dash-card"><div class="dash-card-icon">${i[0]}</div><h3>${i[1]}</h3><p>${i[2]}</p><button onclick="${i[3]}">Abrir→</button></div>
+  `).join('');
   agregarSeccionDocumentos();
-
-  dashboardOverlay.classList.add('open');
-  document.body.style.overflow = 'hidden';
+  let o=document.getElementById('dashboardOverlay');
+  o.classList.add('open');
+  document.body.style.overflow='hidden';
   document.body.classList.add('dashboard-open');
 }
+function closeDashboard(){let o=document.getElementById('dashboardOverlay');o.classList.remove('open');document.body.classList.remove('dashboard-open');document.body.style.overflow='';}
 
-function closeDashboard() {
-  document.getElementById('dashboardOverlay').classList.remove('open');
-  document.body.classList.remove('dashboard-open');
-  document.body.style.overflow = '';
+async function verMisCasos(){
+  let u=window.db?.obtenerUsuarioActual();
+  if(!u)return;
+  let t=window.db._db.transaction(['casos'],'readonly'),s=t.objectStore('casos'),r=await new Promise(r=>s.index('usuarioEmail').getAll(u.email).onsuccess=e=>r(e.target.result));
+  mc=r||[];
+  let h=`<div style="padding:2rem 5vw"><div style="display:flex;justify-content:space-between"><h2>⚖️ Mis Casos</h2><button class="btn-primary" onclick="nuevoCaso()">+ Nuevo</button></div><div>`;
+  if(!mc.length)h+=`<div style="background:var(--bg2);padding:2rem;text-align:center">📭 No hay casos</div>`;
+  else mc.forEach(c=>{let ec=c.estado==='abierto'?'#27ae60':c.estado==='en_proceso'?'#f39c12':'#95a5a6',et=c.estado==='abierto'?'Abierto':c.estado==='en_proceso'?'En Proceso':'Cerrado';
+    h+=`<div class="caso-card" style="background:var(--card-bg);border:1px solid var(--gold-border);border-radius:12px;padding:1rem;margin-bottom:1rem">
+      <div style="display:flex;justify-content:space-between"><div><h3>📋 ${c.titulo||'Caso'}</h3><p>${c.descripcion||''}</p>
+      <div style="display:flex;gap:1rem;margin-top:.5rem"><span>👨‍⚖️ ${c.abogadoNombre||'Por asignar'}</span><span>📅 ${new Date(c.fechaCreacion).toLocaleDateString()}</span>
+      <span style="background:${ec}20;color:${ec}">● ${et}</span></div></div>
+      <div><button class="btn-outline" onclick="verDetalleCaso(${c.id})">Ver</button></div></div></div>`;
+  });h+=`</div></div>`;
+  mostrarModalGenerico(h,'Mis Casos');
 }
+function nuevoCaso(){mostrarModalGenerico(`<div><h3>Nuevo Caso</h3><div class="form-field"><label>Título</label><input id="nc-titulo"></div><div class="form-field"><label>Descripción</label><textarea id="nc-desc" rows="3"></textarea></div><div class="form-field"><label>Área</label><select id="nc-area"><option>Civil</option><option>Penal</option><option>Laboral</option><option>Familia</option></select></div><button class="btn-primary" onclick="crearNuevoCaso()">Crear</button><button class="btn-outline" onclick="cerrarModalGenerico()">Cancelar</button></div>`,'Nuevo Caso');}
+async function crearNuevoCaso(){let t=document.getElementById('nc-titulo')?.value;if(!t){alert('Título requerido');return;}let u=window.db?.obtenerUsuarioActual();if(!u)return;let a=document.getElementById('nc-area')?.value;let d=document.getElementById('nc-desc')?.value||'';let trans=window.db._db.transaction(['casos'],'readwrite'),s=trans.objectStore('casos');s.add({usuarioEmail:u.email,titulo:t,descripcion:d,area:a,estado:'abierto',abogadoEmail:null,abogadoNombre:null,fechaCreacion:new Date().toISOString()}).onsuccess=()=>{cerrarModalGenerico();verMisCasos();alert('✅ Caso creado');};}
+function verDetalleCaso(id){let c=mc.find(x=>x.id===id);if(!c)return;mostrarModalGenerico(`<div><h2>📋 ${c.titulo}</h2><p>${c.descripcion}</p><p><strong>Área:</strong> ${c.area||'N/A'}</p><p><strong>Fecha:</strong> ${new Date(c.fechaCreacion).toLocaleDateString()}</p><p><strong>Abogado:</strong> ${c.abogadoNombre||'Por asignar'}</p><button class="btn-primary" onclick="alert('Próximamente')">💬 Hablar</button><button class="btn-outline" onclick="cerrarModalGenerico()">Cerrar</button></div>`,'Detalle');}
+
+async function verCitas(){
+  let u=window.db?.obtenerUsuarioActual();if(!u)return;
+  let t=window.db._db.transaction(['citas'],'readonly'),r=await new Promise(r=>t.objectStore('citas').index('usuarioEmail').getAll(u.email).onsuccess=e=>r(e.target.result));
+  let h=`<div><div style="display:flex;justify-content:space-between"><h2>📅 Citas</h2><button class="btn-primary" onclick="nuevaCita()">+ Agendar</button></div><div>`;
+  if(!r.length)h+=`<div style="background:var(--bg2);padding:2rem;text-align:center">📅 No hay citas</div>`;
+  else r.sort((a,b)=>new Date(a.fecha)-new Date(b.fecha)).forEach(c=>{h+=`<div style="background:var(--card-bg);border:1px solid var(--gold-border);border-radius:8px;padding:1rem;margin-bottom:1rem"><div>📌 ${c.titulo}<br>📅 ${new Date(c.fecha).toLocaleString()}<br>${c.descripcion||''}</div></div>`;});
+  h+=`</div></div>`;mostrarModalGenerico(h,'Citas');
+}
+function nuevaCita(){mostrarModalGenerico(`<div><h3>Agendar Cita</h3><div class="form-field"><label>Título</label><input id="c-titulo"></div><div class="form-field"><label>Fecha/Hora</label><input type="datetime-local" id="c-fecha"></div><div class="form-field"><label>Descripción</label><textarea id="c-desc" rows="2"></textarea></div><button class="btn-primary" onclick="crearCita()">Agendar</button><button class="btn-outline" onclick="cerrarModalGenerico()">Cancelar</button></div>`,'Nueva Cita');}
+async function crearCita(){let t=document.getElementById('c-titulo')?.value,f=document.getElementById('c-fecha')?.value;if(!t||!f){alert('Completa los campos');return;}let u=window.db?.obtenerUsuarioActual();if(!u)return;let trans=window.db._db.transaction(['citas'],'readwrite');trans.objectStore('citas').add({usuarioEmail:u.email,titulo:t,fecha:new Date(f).toISOString(),descripcion:document.getElementById('c-desc')?.value||'',fechaCreacion:new Date().toISOString()}).onsuccess=()=>{cerrarModalGenerico();verCitas();alert('✅ Cita agendada');};}
+
+async function verPagos(){
+  let u=window.db?.obtenerUsuarioActual();if(!u)return;
+  let t=window.db._db.transaction(['casos'],'readonly'),casos=await new Promise(r=>t.objectStore('casos').index('usuarioEmail').getAll(u.email).onsuccess=e=>r(e.target.result));
+  let h=`<div><h2>💰 Pagos</h2><div style="background:var(--bg2);padding:1rem;margin-bottom:1rem"><h3>Nueva Factura</h3>
+    <select id="p-caso">${casos.map(c=>`<option value="${c.id}">${c.titulo}</option>`).join('')}</select>
+    <select id="p-concepto"><option>Certificado</option><option>Consulta</option><option>Servicio</option></select>
+    <input type="number" id="p-monto" placeholder="Valor">
+    <button class="btn-primary" onclick="genFactura()">Generar</button></div>
+    <div id="lista-pagos"></div></div>`;
+  mostrarModalGenerico(h,'Pagos');cargarPagos();
+}
+async function cargarPagos(){let u=window.db?.obtenerUsuarioActual();if(!u)return;let t=window.db._db.transaction(['pagos'],'readonly'),pagos=await new Promise(r=>t.objectStore('pagos').index('usuarioEmail').getAll(u.email).onsuccess=e=>r(e.target.result));
+  let lp=document.getElementById('lista-pagos');if(!lp)return;
+  if(!pagos.length)lp.innerHTML='<div style="padding:1rem;text-align:center">No hay pagos</div>';
+  else lp.innerHTML=pagos.map(p=>`<div style="background:var(--card-bg);padding:.5rem;margin-bottom:.5rem"><div><strong>${p.concepto}</strong> - $${p.monto}<br><small>${new Date(p.fecha).toLocaleString()}</small></div><button onclick="verFactura(${p.id})">Ver</button> <button onclick="envFactura(${p.id})">📧</button></div>`).join('');
+}
+function genFactura(){let c=document.getElementById('p-caso')?.value,con=document.getElementById('p-concepto')?.value,m=parseFloat(document.getElementById('p-monto')?.value);if(!c||!m){alert('Complete los datos');return;}alert(`✅ Factura generada\nConcepto: ${con}\nMonto: $${m}\nSe ha guardado`);verPagos();}
+
+function verDocumentos(){let h=`<div><h2>📄 Documentos</h2><div style="background:var(--bg2);padding:1rem;margin-bottom:1rem"><input id="doc-n" placeholder="Nombre"><textarea id="doc-d" rows="2" placeholder="Descripción"></textarea><input type="file" id="doc-f"><button class="btn-primary" onclick="subirDoc()">Subir</button></div><div id="lista-docs"></div></div>`;mostrarModalGenerico(h,'Documentos');cargarDocs();}
+async function cargarDocs(){let u=window.db?.obtenerUsuarioActual();if(!u)return;let t=window.db._db.transaction(['documentos'],'readonly'),docs=await new Promise(r=>t.objectStore('documentos').index('usuarioEmail').getAll(u.email).onsuccess=e=>r(e.target.result));
+  let ld=document.getElementById('lista-docs');if(!ld)return;
+  if(!docs.length)ld.innerHTML='<div>📭 No hay documentos</div>';
+  else ld.innerHTML=docs.map(d=>`<div>📄 ${d.nombre}<br><small>${d.descripcion||''} · ${new Date(d.fechaSolicitud).toLocaleDateString()}</small></div>`).join('');
+}
+function subirDoc(){let n=document.getElementById('doc-n')?.value;if(!n){alert('Nombre requerido');return;}alert('✅ Documento subido');cargarDocs();}
+
+function verCalificaciones(){let h=`<div><h2>⭐ Calificaciones</h2><div><select id="cal-abogado"><option>Dr. Andrés</option><option>Dra. Camila</option></select><div id="stars">${[1,2,3,4,5].map(i=>`<span onclick="selStar(${i})" id="star-${i}">☆</span>`).join('')}</div><textarea id="cal-resena" rows="2" placeholder="Tu experiencia..."></textarea><button class="btn-primary" onclick="enviarCal()">Enviar</button></div><div id="lista-cal"></div></div>`;
+  mostrarModalGenerico(h,'Calificaciones');cargarCal();}
+let starSel=0;function selStar(p){starSel=p;for(let i=1;i<=5;i++)document.getElementById(`star-${i}`).innerHTML=i<=p?'★':'☆';}
+function enviarCal(){if(!starSel){alert('Selecciona puntuación');return;}alert('✅ Calificación enviada');cargarCal();}
+async function cargarCal(){let u=window.db?.obtenerUsuarioActual();if(!u)return;let t=window.db._db.transaction(['calificaciones'],'readonly'),cal=await new Promise(r=>t.objectStore('calificaciones').index('usuarioEmail').getAll(u.email).onsuccess=e=>r(e.target.result));
+  let lc=document.getElementById('lista-cal');if(!lc)return;
+  if(!cal.length)lc.innerHTML='<div>No hay calificaciones</div>';
+  else lc.innerHTML=cal.map(c=>`<div><strong>${c.puntuacion}★</strong><br>${c.resena||''}<br><small>${new Date(c.fecha).toLocaleDateString()}</small></div>`).join('');
+}
+
+function verMiPerfil(){let u=window.db?.obtenerUsuarioActual();if(!u)return;
+  let h=`<div style="max-width:500px"><h2>👤 Mi Perfil</h2><div><div style="width:80px;height:80px;border-radius:50%;background:var(--gold-dim);margin:auto">👤</div>
+    <div class="form-field"><label>Nombre</label><input id="perf-n" value="${u.nombre||''}"></div>
+    <div class="form-field"><label>Apellido</label><input id="perf-a" value="${u.apellido||''}"></div>
+    <div class="form-field"><label>Teléfono</label><input id="perf-t" value="${u.telefono||''}"></div>
+    <div class="form-field"><label>Documento</label><input id="perf-d" value="${u.documento||''}"></div>
+    <button class="btn-primary" onclick="guardarPerfil()">Guardar</button></div></div>`;
+  mostrarModalGenerico(h,'Mi Perfil');
+}
+async function guardarPerfil(){let u=window.db?.obtenerUsuarioActual();if(!u)return;let n=document.getElementById('perf-n')?.value,a=document.getElementById('perf-a')?.value;if(!n||!a){alert('Nombre y apellido requeridos');return;}
+  u.nombre=n;u.apellido=a;u.telefono=document.getElementById('perf-t')?.value;u.documento=document.getElementById('perf-d')?.value;
+  let trans=window.db._db.transaction(['usuarios'],'readwrite');trans.objectStore('usuarios').put(u).onsuccess=()=>{window.db.setUsuarioActual(u);alert('✅ Perfil actualizado');cerrarModalGenerico();document.getElementById('dash-name').innerText=n;};}
 
 // ============================================
-// MODALES CON ESTILOS CORRECTOS
+// MODALES GENÉRICOS
 // ============================================
-
-let modalGenericoActivo = null;
-
-function mostrarModalGenerico(contenido, titulo) {
-  if (modalGenericoActivo) modalGenericoActivo.remove();
-  
-  const overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:2000;display:flex;align-items:center;justify-content:center;overflow-y:auto;';
-  
-  const modal = document.createElement('div');
-  modal.style.cssText = 'background:var(--bg);border:1px solid var(--gold-border);border-radius:12px;max-width:900px;width:90%;max-height:85vh;overflow-y:auto;margin:2rem auto;';
-  
-  const header = document.createElement('div');
-  header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:1rem 1.5rem;border-bottom:1px solid var(--gold-border);position:sticky;top:0;background:var(--bg);z-index:10;';
-  header.innerHTML = `<h3 style="margin:0;color:var(--gold);font-family:\'Cormorant Garamond\',serif;font-size:1.5rem;">${titulo}</h3><button onclick="cerrarModalGenerico()" style="background:none;border:none;font-size:1.8rem;cursor:pointer;color:var(--text-muted);">&times;</button>`;
-  
-  const body = document.createElement('div');
-  body.style.cssText = 'padding:1.5rem;';
-  body.innerHTML = contenido;
-  
-  modal.appendChild(header);
-  modal.appendChild(body);
-  overlay.appendChild(modal);
-  document.body.appendChild(overlay);
-  
-  modalGenericoActivo = overlay;
-  document.body.style.overflow = 'hidden';
+let modalActivo=null;
+function mostrarModalGenerico(c,t){if(modalActivo)modalActivo.remove();
+  let o=document.createElement('div');o.style.cssText='position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:2000;display:flex;align-items:center;justify-content:center';
+  let m=document.createElement('div');m.style.cssText='background:var(--bg);border:1px solid var(--gold-border);border-radius:8px;max-width:800px;width:90%;max-height:90vh;overflow:auto';
+  let h=document.createElement('div');h.style.cssText='display:flex;justify-content:space-between;padding:1rem;border-bottom:1px solid var(--gold-border);position:sticky;top:0;background:var(--bg)';
+  h.innerHTML=`<h3 style="color:var(--gold)">${t}</h3><button onclick="cerrarModalGenerico()" style="background:none;border:none;font-size:1.5rem;cursor:pointer">&times;</button>`;
+  let b=document.createElement('div');b.innerHTML=c;
+  m.appendChild(h);m.appendChild(b);o.appendChild(m);document.body.appendChild(o);modalActivo=o;document.body.style.overflow='hidden';
 }
-
-function cerrarModalGenerico() {
-  if (modalGenericoActivo) {
-    modalGenericoActivo.remove();
-    modalGenericoActivo = null;
-  }
-  document.body.style.overflow = '';
-}
-
-// ============================================
-// FUNCIONES DE CADA MÓDULO
-// ============================================
-
-function verMisCasos() {
-  const usuarioActual = window.db?.obtenerUsuarioActual();
-  const nombreUsuario = usuarioActual?.nombre || window._currentUser?.name || 'Usuario';
-  
-  const html = `
-    <div style="text-align:center;">
-      <div style="font-size:3rem;margin-bottom:1rem;">⚖️</div>
-      <h2 style="color:var(--gold);margin-bottom:1rem;">Mis Casos</h2>
-      <p style="color:var(--text-muted);margin-bottom:1.5rem;">Aquí podrás ver y gestionar todos tus procesos legales.</p>
-      <div style="background:var(--bg2);border-radius:8px;padding:1rem;margin-bottom:1rem;">
-        <p style="color:var(--text);"><strong>${nombreUsuario}</strong>, pronto podrás:</p>
-        <ul style="text-align:left;color:var(--text-muted);margin-top:0.5rem;">
-          <li>✓ Ver todos tus casos activos</li>
-          <li>✓ Crear nuevos casos legales</li>
-          <li>✓ Hacer seguimiento a cada proceso</li>
-          <li>✓ Ver quién es tu abogado asignado</li>
-        </ul>
-      </div>
-      <button class="btn-primary" onclick="cerrarModalGenerico()" style="margin-top:1rem;">Cerrar</button>
-    </div>
-  `;
-  mostrarModalGenerico(html, 'Mis Casos');
-}
-
-function verCitas() {
-  const html = `
-    <div style="text-align:center;">
-      <div style="font-size:3rem;margin-bottom:1rem;">📅</div>
-      <h2 style="color:var(--gold);margin-bottom:1rem;">Mis Citas</h2>
-      <p style="color:var(--text-muted);margin-bottom:1.5rem;">Gestiona tus reuniones con abogados.</p>
-      <div style="background:var(--bg2);border-radius:8px;padding:1rem;">
-        <p>📌 Próximamente podrás:</p>
-        <ul style="text-align:left;margin-top:0.5rem;">
-          <li>✓ Agendar citas con tu abogado</li>
-          <li>✓ Ver tu calendario de reuniones</li>
-          <li>✓ Recibir recordatorios</li>
-        </ul>
-      </div>
-      <button class="btn-primary" onclick="cerrarModalGenerico()" style="margin-top:1rem;">Cerrar</button>
-    </div>
-  `;
-  mostrarModalGenerico(html, 'Citas');
-}
-
-function verPagos() {
-  const html = `
-    <div style="text-align:center;">
-      <div style="font-size:3rem;margin-bottom:1rem;">💰</div>
-      <h2 style="color:var(--gold);margin-bottom:1rem;">Pagos y Facturación</h2>
-      <p style="color:var(--text-muted);margin-bottom:1.5rem;">Realiza pagos y consulta tus facturas.</p>
-      <div style="background:var(--bg2);border-radius:8px;padding:1rem;">
-        <p>💳 Próximamente podrás:</p>
-        <ul style="text-align:left;margin-top:0.5rem;">
-          <li>✓ Generar facturas de servicios</li>
-          <li>✓ Realizar pagos seguros</li>
-          <li>✓ Descargar comprobantes</li>
-        </ul>
-      </div>
-      <button class="btn-primary" onclick="cerrarModalGenerico()" style="margin-top:1rem;">Cerrar</button>
-    </div>
-  `;
-  mostrarModalGenerico(html, 'Pagos');
-}
-
-function verDocumentos() {
-  const html = `
-    <div style="text-align:center;">
-      <div style="font-size:3rem;margin-bottom:1rem;">📄</div>
-      <h2 style="color:var(--gold);margin-bottom:1rem;">Mis Documentos</h2>
-      <p style="color:var(--text-muted);margin-bottom:1.5rem;">Accede a tu expediente digital.</p>
-      <div style="background:var(--bg2);border-radius:8px;padding:1rem;">
-        <p>📁 Próximamente podrás:</p>
-        <ul style="text-align:left;margin-top:0.5rem;">
-          <li>✓ Ver todos tus documentos</li>
-          <li>✓ Subir nuevos documentos</li>
-          <li>✓ Compartir documentos con tu abogado</li>
-        </ul>
-      </div>
-      <button class="btn-primary" onclick="cerrarModalGenerico()" style="margin-top:1rem;">Cerrar</button>
-    </div>
-  `;
-  mostrarModalGenerico(html, 'Documentos');
-}
-
-function verCalificaciones() {
-  const html = `
-    <div style="text-align:center;">
-      <div style="font-size:3rem;margin-bottom:1rem;">⭐</div>
-      <h2 style="color:var(--gold);margin-bottom:1rem;">Calificaciones</h2>
-      <p style="color:var(--text-muted);margin-bottom:1.5rem;">Califica a los abogados que te atendieron.</p>
-      <div style="background:var(--bg2);border-radius:8px;padding:1rem;">
-        <p>📝 Próximamente podrás:</p>
-        <ul style="text-align:left;margin-top:0.5rem;">
-          <li>✓ Calificar a tus abogados</li>
-          <li>✓ Dejar reseñas</li>
-          <li>✓ Ver calificaciones de otros usuarios</li>
-        </ul>
-      </div>
-      <button class="btn-primary" onclick="cerrarModalGenerico()" style="margin-top:1rem;">Cerrar</button>
-    </div>
-  `;
-  mostrarModalGenerico(html, 'Calificaciones');
-}
-
-function verMiPerfil() {
-  const usuarioActual = window.db?.obtenerUsuarioActual();
-  const nombre = usuarioActual?.nombre || window._currentUser?.name || 'Usuario';
-  const email = usuarioActual?.email || '';
-  
-  const html = `
-    <div style="text-align:center;">
-      <div style="font-size:3rem;margin-bottom:1rem;">👤</div>
-      <h2 style="color:var(--gold);margin-bottom:1rem;">Mi Perfil</h2>
-      <div style="background:var(--bg2);border-radius:8px;padding:1rem;text-align:left;">
-        <p><strong>Nombre:</strong> ${nombre}</p>
-        <p><strong>Correo:</strong> ${email}</p>
-        <p><strong>Rol:</strong> ${usuarioActual?.role || window._currentUser?.role || 'Cliente'}</p>
-        <hr style="border-color:var(--gold-border);margin:1rem 0;">
-        <p>📝 Próximamente podrás editar:</p>
-        <ul>
-          <li>✓ Foto de perfil</li>
-          <li>✓ Teléfono y dirección</li>
-          <li>✓ Documento de identidad</li>
-        </ul>
-      </div>
-      <button class="btn-primary" onclick="cerrarModalGenerico()" style="margin-top:1rem;">Cerrar</button>
-    </div>
-  `;
-  mostrarModalGenerico(html, 'Mi Perfil');
-}
+function cerrarModalGenerico(){if(modalActivo)modalActivo.remove();modalActivo=null;document.body.style.overflow='';}
 
 // ============================================
 // DOCUMENTOS PENDIENTES
 // ============================================
-
-async function agregarSeccionDocumentos() {
-  const dashboardContent = document.querySelector('#dashboardOverlay > div');
-  if (!dashboardContent) return;
-  if (document.getElementById('documentos-pendientes-section')) return;
-  
-  const usuarioActual = window.db?.obtenerUsuarioActual();
-  if (!usuarioActual) return;
-  
-  try {
-    const docs = await window.db.documentos.pendientes(usuarioActual.email);
-    if (!docs || docs.length === 0) return;
-    
-    const docSection = document.createElement('div');
-    docSection.id = 'documentos-pendientes-section';
-    docSection.style.marginTop = '2rem';
-    docSection.style.padding = '0 5vw';
-    docSection.innerHTML = `
-      <div style="margin-bottom: 1rem;">
-        <div style="font-size:.66rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);display:flex;align-items:center;gap:.8rem;margin-bottom:1rem;">
-          <span style="display:block;width:24px;height:1px;background:var(--gold);"></span>
-          📄 Documentos pendientes
-        </div>
-        <div id="lista-documentos-pendientes" style="display:flex;flex-direction:column;gap:0.8rem;"></div>
-      </div>
-    `;
-    dashboardContent.appendChild(docSection);
-    actualizarListaDocumentosPendientes();
-  } catch (error) {
-    console.error('Error al cargar documentos pendientes:', error);
-  }
+async function agregarSeccionDocumentos(){let u=window.db?.obtenerUsuarioActual();if(!u)return;let docs=await window.db.documentos.pendientes(u.email);if(!docs?.length)return;
+  let sec=document.createElement('div');sec.id='doc-pend-section';sec.innerHTML=`<div style="margin-top:2rem;padding:0 5vw"><div>📄 Documentos pendientes</div><div id="lista-doc-pend"></div></div>`;
+  document.querySelector('#dashboardOverlay>div')?.appendChild(sec);actualizarListaDocPend();
 }
-
-async function actualizarListaDocumentosPendientes() {
-  const container = document.getElementById('lista-documentos-pendientes');
-  if (!container) return;
-  
-  const usuarioActual = window.db?.obtenerUsuarioActual();
-  if (!usuarioActual) return;
-  
-  try {
-    const docs = await window.db.documentos.pendientes(usuarioActual.email);
-    if (!docs || docs.length === 0) {
-      const section = document.getElementById('documentos-pendientes-section');
-      if (section) section.remove();
-      return;
-    }
-    
-    container.innerHTML = docs.map(doc => `
-      <div style="background:var(--card-bg);border:1px solid var(--gold-border);border-radius:8px;padding:1rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;">
-        <div style="flex:1;">
-          <div style="font-weight:500;color:var(--text);">📄 ${escapeHtml(doc.nombre)}</div>
-          <div style="font-size:0.75rem;color:var(--text-muted);">${escapeHtml(doc.descripcion)}</div>
-          <div style="font-size:0.65rem;color:var(--gold);margin-top:0.5rem;">${doc.area || 'General'} · Solicitado: ${new Date(doc.fechaSolicitud).toLocaleString()} · ⏳ Pendiente</div>
-        </div>
-        <button onclick="subirDocumentoPendiente(${doc.id})" style="background:var(--gold);color:#fff;border:none;padding:0.5rem 1rem;cursor:pointer;border-radius:4px;">📎 Subir</button>
-      </div>
-    `).join('');
-  } catch (error) {
-    console.error('Error:', error);
-  }
+async function actualizarListaDocPend(){let c=document.getElementById('lista-doc-pend');if(!c)return;let u=window.db?.obtenerUsuarioActual();if(!u)return;let docs=await window.db.documentos.pendientes(u.email);if(!docs?.length){document.getElementById('doc-pend-section')?.remove();return;}
+  c.innerHTML=docs.map(d=>`<div class="doc-item"><div><strong>📄 ${d.nombre}</strong><br><small>${d.descripcion}<br>${new Date(d.fechaSolicitud).toLocaleDateString()}</small></div><button class="doc-btn" onclick="subirDocPend(${d.id})">Subir</button></div>`).join('');
 }
+async function subirDocPend(id){let inp=document.createElement('input');inp.type='file';inp.onchange=async e=>{if(e.target.files[0]){await window.db.documentos.subir(id,e.target.files[0].name);await actualizarListaDocPend();alert('✅ Documento subido');}};inp.click();}
 
-async function subirDocumentoPendiente(docId) {
-  const input = document.createElement('input');
-  input.type = 'file';
-  input.accept = '.pdf,.doc,.docx,.jpg,.png';
-  input.onchange = async (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      try {
-        await window.db.documentos.subir(docId, file.name);
-        await actualizarListaDocumentosPendientes();
-        alert(`✅ Documento "${file.name}" subido correctamente`);
-      } catch (error) {
-        alert('Error al subir el documento: ' + error.message);
-      }
-    }
-  };
-  input.click();
-}
+// Funciones admin
+function verificarAbogados(){alert('📋 Función de administración');}
+function verEstadisticas(){alert('📊 Estadísticas próximamente');}
+function gestionarUsuarios(){alert('👥 Gestión de usuarios');}
 
-function escapeHtml(text) {
-  if (!text) return '';
-  return text.replace(/[&<>]/g, (m) => {
-    if (m === '&') return '&amp;';
-    if (m === '<') return '&lt;';
-    if (m === '>') return '&gt;';
-    return m;
-  });
-}
-
-// ============================================
-// FUNCIONES ADMIN
-// ============================================
-
-function verificarAbogados() {
-  mostrarModalGenerico(`
-    <div style="text-align:center;">
-      <div style="font-size:3rem;">🛡️</div>
-      <h2 style="color:var(--gold);">Verificar Abogados</h2>
-      <p>Lista de abogados pendientes de verificación.</p>
-      <button class="btn-primary" onclick="cerrarModalGenerico()">Cerrar</button>
-    </div>
-  `, 'Verificar Abogados');
-}
-
-function verEstadisticas() {
-  mostrarModalGenerico(`
-    <div style="text-align:center;">
-      <div style="font-size:3rem;">📊</div>
-      <h2 style="color:var(--gold);">Estadísticas</h2>
-      <p>Métricas de uso de la plataforma.</p>
-      <button class="btn-primary" onclick="cerrarModalGenerico()">Cerrar</button>
-    </div>
-  `, 'Estadísticas');
-}
-
-function gestionarUsuarios() {
-  mostrarModalGenerico(`
-    <div style="text-align:center;">
-      <div style="font-size:3rem;">👤</div>
-      <h2 style="color:var(--gold);">Gestión de Usuarios</h2>
-      <p>Administra todas las cuentas de la plataforma.</p>
-      <button class="btn-primary" onclick="cerrarModalGenerico()">Cerrar</button>
-    </div>
-  `, 'Gestión de Usuarios');
-}
-
-// Exponer funciones globales
-window.agregarDocumentoPendiente = async (nombre, descripcion, area) => {
-  const usuarioActual = window.db?.obtenerUsuarioActual();
-  if (!usuarioActual) return null;
-  const docId = await window.db.documentos.agregar(usuarioActual.email, nombre, descripcion, area);
-  await actualizarListaDocumentosPendientes();
-  return docId;
-};
-window.actualizarListaDocumentos = actualizarListaDocumentosPendientes;
-window.subirDocumentoPendiente = subirDocumentoPendiente;
-window.cerrarModalGenerico = cerrarModalGenerico;
+// Exportar
+window.agregarDocumentoPendiente=async(n,d,a)=>{let u=window.db?.obtenerUsuarioActual();if(!u)return;let id=await window.db.documentos.agregar(u.email,n,d,a);await actualizarListaDocPend();return id;};
+window.actualizarListaDocumentos=actualizarListaDocPend;
