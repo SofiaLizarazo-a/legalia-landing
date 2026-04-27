@@ -3,7 +3,7 @@
 // ============================================
 
 const DB_NAME = 'LegaliaDB';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // Aumentamos la versión para agregar nuevas tablas
 
 // Variables globales
 let db = null;
@@ -46,7 +46,7 @@ function iniciarBaseDatos() {
         resolve(db);
       }).catch(err => {
         console.warn('Error al inicializar admin:', err);
-        resolve(db); // Resolvemos igual para no bloquear
+        resolve(db);
       });
     };
     
@@ -90,6 +90,36 @@ function iniciarBaseDatos() {
         casosStore.createIndex('estado', 'estado', { unique: false });
         casosStore.createIndex('fechaCreacion', 'fechaCreacion', { unique: false });
         console.log('✅ Tabla "casos" creada');
+      }
+      
+      // ========================================
+      // NUEVAS TABLAS para las funcionalidades agregadas
+      // ========================================
+      
+      // Tabla de CITAS
+      if (!db.objectStoreNames.contains('citas')) {
+        const citasStore = db.createObjectStore('citas', { keyPath: 'id', autoIncrement: true });
+        citasStore.createIndex('usuarioEmail', 'usuarioEmail', { unique: false });
+        citasStore.createIndex('casoId', 'casoId', { unique: false });
+        citasStore.createIndex('fecha', 'fecha', { unique: false });
+        console.log('✅ Tabla "citas" creada');
+      }
+      
+      // Tabla de PAGOS
+      if (!db.objectStoreNames.contains('pagos')) {
+        const pagosStore = db.createObjectStore('pagos', { keyPath: 'id', autoIncrement: true });
+        pagosStore.createIndex('usuarioEmail', 'usuarioEmail', { unique: false });
+        pagosStore.createIndex('casoId', 'casoId', { unique: false });
+        pagosStore.createIndex('estado', 'estado', { unique: false });
+        console.log('✅ Tabla "pagos" creada');
+      }
+      
+      // Tabla de CALIFICACIONES
+      if (!db.objectStoreNames.contains('calificaciones')) {
+        const calificacionesStore = db.createObjectStore('calificaciones', { keyPath: 'id', autoIncrement: true });
+        calificacionesStore.createIndex('usuarioEmail', 'usuarioEmail', { unique: false });
+        calificacionesStore.createIndex('abogadoEmail', 'abogadoEmail', { unique: false });
+        console.log('✅ Tabla "calificaciones" creada');
       }
       
       // Tabla de NOTIFICACIONES
@@ -137,7 +167,6 @@ function crearUsuario(nombre, apellido, email, password, role = 'cliente') {
       return;
     }
     
-    // Verificar si el usuario ya existe
     obtenerUsuarioPorEmail(email).then(usuarioExistente => {
       if (usuarioExistente) {
         reject(new Error('Ya existe una cuenta con este correo electrónico'));
@@ -153,6 +182,8 @@ function crearUsuario(nombre, apellido, email, password, role = 'cliente') {
         email: email.toLowerCase(),
         password,
         role,
+        telefono: '',
+        documento: '',
         fechaRegistro: new Date().toISOString(),
         activo: true,
         fotoPerfil: null
@@ -409,6 +440,28 @@ function obtenerDocumentosPendientesUsuario(usuarioEmail) {
   });
 }
 
+function obtenerTodosDocumentosUsuario(usuarioEmail) {
+  return new Promise((resolve, reject) => {
+    if (!db) {
+      reject(new Error('Base de datos no inicializada'));
+      return;
+    }
+    
+    const transaction = db.transaction(['documentos'], 'readonly');
+    const store = transaction.objectStore('documentos');
+    const index = store.index('usuarioEmail');
+    const request = index.getAll(usuarioEmail.toLowerCase());
+    
+    request.onsuccess = () => {
+      resolve(request.result || []);
+    };
+    
+    request.onerror = (event) => {
+      reject(event.target.error);
+    };
+  });
+}
+
 function subirDocumento(docId, archivoNombre) {
   return new Promise((resolve, reject) => {
     if (!db) {
@@ -440,6 +493,256 @@ function subirDocumento(docId, archivoNombre) {
       updateRequest.onerror = (event) => {
         reject(event.target.error);
       };
+    };
+    
+    request.onerror = (event) => {
+      reject(event.target.error);
+    };
+  });
+}
+
+// ============================================
+// CRUD - CASOS
+// ============================================
+function obtenerCasosUsuario(usuarioEmail) {
+  return new Promise((resolve, reject) => {
+    if (!db) {
+      reject(new Error('Base de datos no inicializada'));
+      return;
+    }
+    
+    const transaction = db.transaction(['casos'], 'readonly');
+    const store = transaction.objectStore('casos');
+    const index = store.index('usuarioEmail');
+    const request = index.getAll(usuarioEmail.toLowerCase());
+    
+    request.onsuccess = () => {
+      resolve(request.result || []);
+    };
+    
+    request.onerror = (event) => {
+      reject(event.target.error);
+    };
+  });
+}
+
+function crearCaso(usuarioEmail, titulo, descripcion, area) {
+  return new Promise((resolve, reject) => {
+    if (!db) {
+      reject(new Error('Base de datos no inicializada'));
+      return;
+    }
+    
+    const transaction = db.transaction(['casos'], 'readwrite');
+    const store = transaction.objectStore('casos');
+    
+    const nuevoCaso = {
+      usuarioEmail: usuarioEmail.toLowerCase(),
+      titulo: titulo,
+      descripcion: descripcion,
+      area: area,
+      estado: 'abierto',
+      abogadoEmail: null,
+      abogadoNombre: null,
+      fechaCreacion: new Date().toISOString(),
+      ultimaActualizacion: new Date().toISOString()
+    };
+    
+    const request = store.add(nuevoCaso);
+    
+    request.onsuccess = () => {
+      resolve(request.result);
+    };
+    
+    request.onerror = (event) => {
+      reject(event.target.error);
+    };
+  });
+}
+
+// ============================================
+// CRUD - CITAS
+// ============================================
+function obtenerCitasUsuario(usuarioEmail) {
+  return new Promise((resolve, reject) => {
+    if (!db) {
+      reject(new Error('Base de datos no inicializada'));
+      return;
+    }
+    
+    const transaction = db.transaction(['citas'], 'readonly');
+    const store = transaction.objectStore('citas');
+    const index = store.index('usuarioEmail');
+    const request = index.getAll(usuarioEmail.toLowerCase());
+    
+    request.onsuccess = () => {
+      resolve(request.result || []);
+    };
+    
+    request.onerror = (event) => {
+      reject(event.target.error);
+    };
+  });
+}
+
+function crearCita(usuarioEmail, titulo, fecha, descripcion, casoId = null) {
+  return new Promise((resolve, reject) => {
+    if (!db) {
+      reject(new Error('Base de datos no inicializada'));
+      return;
+    }
+    
+    const transaction = db.transaction(['citas'], 'readwrite');
+    const store = transaction.objectStore('citas');
+    
+    const nuevaCita = {
+      usuarioEmail: usuarioEmail.toLowerCase(),
+      titulo: titulo,
+      fecha: new Date(fecha).toISOString(),
+      descripcion: descripcion || '',
+      casoId: casoId,
+      estado: 'pendiente',
+      fechaCreacion: new Date().toISOString()
+    };
+    
+    const request = store.add(nuevaCita);
+    
+    request.onsuccess = () => {
+      resolve(request.result);
+    };
+    
+    request.onerror = (event) => {
+      reject(event.target.error);
+    };
+  });
+}
+
+function eliminarCita(citaId) {
+  return new Promise((resolve, reject) => {
+    if (!db) {
+      reject(new Error('Base de datos no inicializada'));
+      return;
+    }
+    
+    const transaction = db.transaction(['citas'], 'readwrite');
+    const store = transaction.objectStore('citas');
+    const request = store.delete(citaId);
+    
+    request.onsuccess = () => {
+      resolve(true);
+    };
+    
+    request.onerror = (event) => {
+      reject(event.target.error);
+    };
+  });
+}
+
+// ============================================
+// CRUD - PAGOS
+// ============================================
+function obtenerPagosUsuario(usuarioEmail) {
+  return new Promise((resolve, reject) => {
+    if (!db) {
+      reject(new Error('Base de datos no inicializada'));
+      return;
+    }
+    
+    const transaction = db.transaction(['pagos'], 'readonly');
+    const store = transaction.objectStore('pagos');
+    const index = store.index('usuarioEmail');
+    const request = index.getAll(usuarioEmail.toLowerCase());
+    
+    request.onsuccess = () => {
+      resolve(request.result || []);
+    };
+    
+    request.onerror = (event) => {
+      reject(event.target.error);
+    };
+  });
+}
+
+function crearPago(usuarioEmail, casoId, casoTitulo, concepto, monto) {
+  return new Promise((resolve, reject) => {
+    if (!db) {
+      reject(new Error('Base de datos no inicializada'));
+      return;
+    }
+    
+    const transaction = db.transaction(['pagos'], 'readwrite');
+    const store = transaction.objectStore('pagos');
+    
+    const nuevoPago = {
+      usuarioEmail: usuarioEmail.toLowerCase(),
+      casoId: casoId,
+      casoTitulo: casoTitulo,
+      concepto: concepto,
+      monto: monto,
+      fecha: new Date().toISOString(),
+      estado: 'pagado',
+      numeroFactura: 'FAC-' + Date.now()
+    };
+    
+    const request = store.add(nuevoPago);
+    
+    request.onsuccess = () => {
+      resolve(request.result);
+    };
+    
+    request.onerror = (event) => {
+      reject(event.target.error);
+    };
+  });
+}
+
+// ============================================
+// CRUD - CALIFICACIONES
+// ============================================
+function obtenerCalificacionesUsuario(usuarioEmail) {
+  return new Promise((resolve, reject) => {
+    if (!db) {
+      reject(new Error('Base de datos no inicializada'));
+      return;
+    }
+    
+    const transaction = db.transaction(['calificaciones'], 'readonly');
+    const store = transaction.objectStore('calificaciones');
+    const index = store.index('usuarioEmail');
+    const request = index.getAll(usuarioEmail.toLowerCase());
+    
+    request.onsuccess = () => {
+      resolve(request.result || []);
+    };
+    
+    request.onerror = (event) => {
+      reject(event.target.error);
+    };
+  });
+}
+
+function crearCalificacion(usuarioEmail, abogadoEmail, puntuacion, resena) {
+  return new Promise((resolve, reject) => {
+    if (!db) {
+      reject(new Error('Base de datos no inicializada'));
+      return;
+    }
+    
+    const transaction = db.transaction(['calificaciones'], 'readwrite');
+    const store = transaction.objectStore('calificaciones');
+    
+    const nuevaCalificacion = {
+      usuarioEmail: usuarioEmail.toLowerCase(),
+      abogadoEmail: abogadoEmail,
+      puntuacion: puntuacion,
+      resena: resena || '',
+      fecha: new Date().toISOString()
+    };
+    
+    const request = store.add(nuevaCalificacion);
+    
+    request.onsuccess = () => {
+      resolve(request.result);
     };
     
     request.onerror = (event) => {
@@ -508,12 +811,25 @@ function obtenerNotificacionesUsuario(usuarioEmail) {
 // ============================================
 window.db = {
   iniciar: iniciarBaseDatos,
-  _db: null, // Será asignado cuando la BD se conecte
+  _db: null,
   usuarios: {
     crear: crearUsuario,
     obtener: obtenerUsuarioPorEmail,
     autenticar: autenticarUsuario,
-    todos: obtenerTodosUsuarios
+    todos: obtenerTodosUsuarios,
+    actualizar: async (usuario) => {
+      return new Promise((resolve, reject) => {
+        if (!db) {
+          reject(new Error('Base de datos no inicializada'));
+          return;
+        }
+        const transaction = db.transaction(['usuarios'], 'readwrite');
+        const store = transaction.objectStore('usuarios');
+        const request = store.put(usuario);
+        request.onsuccess = () => resolve(usuario);
+        request.onerror = (event) => reject(event.target.error);
+      });
+    }
   },
   conversaciones: {
     guardar: guardarConversacion,
@@ -523,7 +839,25 @@ window.db = {
   documentos: {
     agregar: agregarDocumento,
     pendientes: obtenerDocumentosPendientesUsuario,
+    todos: obtenerTodosDocumentosUsuario,
     subir: subirDocumento
+  },
+  casos: {
+    obtenerPorUsuario: obtenerCasosUsuario,
+    crear: crearCaso
+  },
+  citas: {
+    obtenerPorUsuario: obtenerCitasUsuario,
+    crear: crearCita,
+    eliminar: eliminarCita
+  },
+  pagos: {
+    obtenerPorUsuario: obtenerPagosUsuario,
+    crear: crearPago
+  },
+  calificaciones: {
+    obtenerPorUsuario: obtenerCalificacionesUsuario,
+    crear: crearCalificacion
   },
   notificaciones: {
     agregar: agregarNotificacion,
