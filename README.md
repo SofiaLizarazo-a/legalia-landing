@@ -1,1 +1,1 @@
-# legalia-landing
+# legalia
