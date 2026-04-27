@@ -4,8 +4,6 @@
 // ============================================
 
 let dashboardCasos = [];
-let dashboardCitas = [];
-let dashboardPagos = [];
 
 // ============================================
 // MOSTRAR DASHBOARD PRINCIPAL
