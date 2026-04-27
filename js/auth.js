@@ -1,11 +1,30 @@
 // ============================================
-// LEGALIA AUTH 
+// LEGALIA AUTH - VERSIÓN CORTA
 // ============================================
 
 function valEmail(e){return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e);}
 function getTipo(){let a=document.querySelector('#loginModal .modal-tab.active');if(!a)return'cliente';let t=a.textContent.trim().toLowerCase();return t.includes('admin')?'administrador':(t.includes('abogado')?'abogado':'cliente');}
-async function esperarDB(){console.log('⏳ Esperando DB...');let i=0;while(i<50){if(window.db&&window.db._db){console.log('✅ DB lista');return true;}await new Promise(r=>setTimeout(r,100));i++;}throw new Error('DB no disponible');}
+async function esperarDB(){let i=0;while(i<50){if(window.db&&window.db._db)return true;await new Promise(r=>setTimeout(r,100));i++;}throw new Error('DB no disponible');}
 function showModalSuccess(m,msg){let ok=document.querySelector('#'+m+' .modal-ok');if(!ok){ok=document.createElement('p');ok.className='modal-ok';ok.style.cssText='color:#27ae60;font-size:.78rem;margin-bottom:.8rem;text-align:center;padding:.5rem;border:1px solid rgba(39,174,96,.3);background:rgba(39,174,96,.06);';let ff=document.querySelector('#'+m+' .form-field');ff?ff.before(ok):document.querySelector('#'+m+' .modal').appendChild(ok);}ok.textContent=msg;ok.style.display='block';}
+
+function showModalError(modalId, msg) {
+  let err = document.querySelector('#' + modalId + ' .modal-error');
+  if (!err) {
+    err = document.createElement('p');
+    err.className = 'modal-error';
+    err.style.cssText = 'color:#c0392b;font-size:.78rem;margin-top:.6rem;text-align:center;padding:.5rem;border:1px solid rgba(192,57,43,.3);background:rgba(192,57,43,.06);border-radius:4px;';
+    const submitBtn = document.querySelector('#' + modalId + ' .modal-submit');
+    if (submitBtn) submitBtn.parentNode.insertBefore(err, submitBtn);
+    else document.querySelector('#' + modalId + ' .modal').appendChild(err);
+  }
+  err.textContent = msg;
+  err.style.display = 'block';
+}
+
+function clearModalError(modalId) {
+  const err = document.querySelector('#' + modalId + ' .modal-error');
+  if (err) err.style.display = 'none';
+}
 
 async function doLogin(){
   clearModalError('loginModal');try{await esperarDB();}catch(e){showModalError('loginModal',e.message);return;}
