@@ -3,19 +3,26 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Legalia</title>
+  <title>Legalia | Tecnología que transforma la justicia</title>
+  <meta name="description" content="Legalia es una plataforma legal digital que conecta clientes con abogados. Gestión de casos, chat seguro, pagos integrados y seguimiento en tiempo real.">
+  <meta name="keywords" content="abogados, plataforma legal, gestión de casos, justicia digital, asesoría legal">
+  <meta name="author" content="Equipo Legalia - Universidad Libre">
+  <meta property="og:title" content="Legalia - Tecnología que transforma la justicia">
+  <meta property="og:description" content="Plataforma legal digital para clientes y abogados. Gestiona tus casos, comunícate en tiempo real.">
+  <meta property="og:type" content="website">
+  <link rel="icon" type="image/png" href="assets/images/logolegalia.png">
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="css/styles.css"/>
 </head>
 <body>
 
 <nav>
-  <div class="logo-container">
+  <a href="/" class="logo-container" style="text-decoration: none;">
     <div class="logo-icon">
-      <img src="assets/images/logolegalia.png" alt="Legalia" style="height: 52px; width: auto; display: block;">
+      <img src="assets/images/logolegalia.png" alt="Legalia - Ir al inicio" style="height: 52px; width: auto; display: block;">
     </div>
     <span class="logo-legalia">LEGALIA</span>
-  </div>
+  </a>
 
   <ul class="nav-links">
     <li><a href="#">Inicio</a></li>
@@ -190,7 +197,12 @@
 <div class="divider"></div>
 
 <footer>
-  <div class="footer-left"><div class="footer-logo">LEGALIA</div><div class="footer-slogan">Tecnología que transforma la justicia</div></div>
+  <div class="footer-left">
+    <a href="/" style="text-decoration: none;">
+      <div class="footer-logo">LEGALIA</div>
+      <div class="footer-slogan">Tecnología que transforma la justicia</div>
+    </a>
+  </div>
   <div class="footer-center">
     <div class="footer-uni">Universidad Libre · Ingeniería de Software III · 2026-1</div>
     <div class="footer-team"><span>Ana Sofía Lizarazo</span><span>Laura Sofía Angulo</span><span>Brianna Estefanía Serrato</span><span>Laura Sofía Ayala</span><span>Luna Sofía Gaitán</span><span>Mariana Gutiérrez</span></div>
@@ -209,8 +221,8 @@
       <button class="modal-tab" onclick="setLoginType('abogado',this)">Abogado</button>
       <button class="modal-tab" onclick="setLoginType('admin',this)">Administrador</button>
     </div>
-    <div class="form-field"><label>Correo electrónico</label><input type="email" placeholder="tucorreo@ejemplo.com"/></div>
-    <div class="form-field"><label>Contraseña</label><input type="password" placeholder="••••••••"/></div>
+    <div class="form-field"><label>Correo electrónico</label><input type="email" id="loginEmail" placeholder="tucorreo@ejemplo.com"/></div>
+    <div class="form-field"><label>Contraseña</label><input type="password" id="loginPassword" placeholder="••••••••"/></div>
     <div style="text-align:right;margin-bottom:.5rem;"><button style="background:none;border:none;font-size:.78rem;color:var(--gold);cursor:pointer;font-family:inherit;">¿Olvidaste tu contraseña?</button></div>
     <button class="modal-submit" onclick="doLogin()">Iniciar sesión</button>
     <p class="modal-footer-text">¿No tienes cuenta? <button onclick="closeModal('loginModal');openModal('register')">Regístrate aquí</button></p>
@@ -229,14 +241,14 @@
       <button class="user-type-btn" id="reg-abogado" onclick="setRegType('abogado')">Abogado</button>
     </div>
     <div class="form-row">
-      <div class="form-field"><label>Nombre</label><input type="text" placeholder="Tu nombre"/></div>
-      <div class="form-field"><label>Apellido</label><input type="text" placeholder="Tu apellido"/></div>
+      <div class="form-field"><label>Nombre</label><input type="text" id="regNombre" placeholder="Tu nombre"/></div>
+      <div class="form-field"><label>Apellido</label><input type="text" id="regApellido" placeholder="Tu apellido"/></div>
     </div>
-    <div class="form-field"><label>Correo electrónico</label><input type="email" placeholder="tucorreo@ejemplo.com"/></div>
-    <div class="form-field"><label>Contraseña</label><input type="password" placeholder="Mínimo 8 caracteres"/></div>
+    <div class="form-field"><label>Correo electrónico</label><input type="email" id="regEmail" placeholder="tucorreo@ejemplo.com"/></div>
+    <div class="form-field"><label>Contraseña</label><input type="password" id="regPassword" placeholder="Mínimo 8 caracteres"/></div>
     <div id="lawyer-fields" style="display:none;">
-      <div class="form-field"><label>Tarjeta profesional</label><input type="text" placeholder="Número de tarjeta profesional"/></div>
-      <div class="form-field"><label>Especialidad</label><select><option value="">Selecciona tu especialidad</option><option>Derecho Civil</option><option>Derecho Penal</option><option>Derecho Laboral</option><option>Derecho Comercial</option><option>Derecho de Familia</option><option>Derecho Administrativo</option></select></div>
+      <div class="form-field"><label>Tarjeta profesional</label><input type="text" id="regTarjeta" placeholder="Número de tarjeta profesional"/></div>
+      <div class="form-field"><label>Especialidad</label><select id="regEspecialidad"><option value="">Selecciona tu especialidad</option><option>Derecho Civil</option><option>Derecho Penal</option><option>Derecho Laboral</option><option>Derecho Comercial</option><option>Derecho de Familia</option><option>Derecho Administrativo</option></select></div>
     </div>
     <button class="modal-submit" onclick="doRegister()">Crear cuenta</button>
     <p class="modal-footer-text">¿Ya tienes cuenta? <button onclick="closeModal('registerModal');openModal('login')">Inicia sesión</button></p>
@@ -308,33 +320,25 @@
 <script src="js/chat.js"></script>
 
 <script>
-  // Esperar a que TODO el HTML cargue
   document.addEventListener('DOMContentLoaded', async function() {
-    console.log('📦 Inicializando sistema...');
+    console.log('📦 Inicializando Legalia...');
     
-    // Verificar que window.db existe
     if (!window.db || !window.db.iniciar) {
-      console.error('❌ Error crítico: window.db no está disponible');
-      alert('Error: La base de datos no cargó correctamente. Recarga la página.');
+      console.error('❌ Error: window.db no está disponible');
       return;
     }
     
     try {
-      // Inicializar base de datos
-      console.log('🔄 Conectando a IndexedDB...');
       await window.db.iniciar();
       console.log('✅ Base de datos lista');
       
-      // Opcional: mostrar indicador de éxito
       const indicator = document.createElement('div');
-      indicator.textContent = '✅ Sistema listo';
-      indicator.style.cssText = 'position:fixed;bottom:10px;right:10px;background:#27ae60;color:white;padding:4px 12px;border-radius:20px;font-size:11px;z-index:9999;font-family:sans-serif;';
+      indicator.textContent = '✅ Sistema Legalia listo';
+      indicator.style.cssText = 'position:fixed;bottom:10px;right:10px;background:#27ae60;color:white;padding:4px 12px;border-radius:20px;font-size:11px;z-index:9999;font-family:sans-serif;opacity:0.8';
       document.body.appendChild(indicator);
-      setTimeout(() => indicator.remove(), 2000);
-      
+      setTimeout(() => indicator.remove(), 3000);
     } catch (error) {
-      console.error('❌ Error al inicializar la base de datos:', error);
-      alert('Error al conectar con la base de datos. Recarga la página.');
+      console.error('❌ Error al inicializar:', error);
     }
   });
 </script>
