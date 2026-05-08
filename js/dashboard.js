@@ -1,5 +1,5 @@
 // ============================================
-// LEGALIA DASHBOARD - VERSIÓN COMPLETA FINAL
+// LEGALIA DASHBOARD - OPTIMIZADO
 // ============================================
 
 console.log('📊 [dashboard.js] Cargando...');
@@ -10,8 +10,7 @@ function showDashboard(role, name) {
     
     const configs = {
         cliente: {
-            badge: 'Cliente',
-            badgeColor: '#27ae60',
+            badge: 'Cliente', badgeColor: '#27ae60',
             welcome: `Bienvenido, ${name}`,
             desc: 'Desde aquí puedes gestionar tus casos, comunicarte con tu abogado y realizar pagos.',
             items: [
@@ -25,8 +24,7 @@ function showDashboard(role, name) {
             ]
         },
         abogado: {
-            badge: 'Abogado',
-            badgeColor: '#2980b9',
+            badge: 'Abogado', badgeColor: '#2980b9',
             welcome: `Bienvenido, Abog. ${name}`,
             desc: 'Administra tus casos, clientes y agenda profesional.',
             items: [
@@ -38,8 +36,7 @@ function showDashboard(role, name) {
             ]
         },
         administrador: {
-            badge: 'Admin',
-            badgeColor: '#8e44ad',
+            badge: 'Admin', badgeColor: '#8e44ad',
             welcome: `Bienvenido, Administrador ${name}`,
             desc: 'Panel de control completo de la plataforma Legalia.',
             items: [
@@ -86,81 +83,24 @@ function closeDashboard() {
     document.body.style.overflow = '';
 }
 
-let modal = null;
-
-function mostrarModal(content, title) {
-    if (modal) modal.remove();
-    const overlayDiv = document.createElement('div');
-    overlayDiv.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.7);z-index:2000;display:flex;align-items:center;justify-content:center';
-    const modalDiv = document.createElement('div');
-    modalDiv.style.cssText = 'background:var(--bg);border:1px solid var(--gold-border);border-radius:12px;max-width:800px;width:90%;max-height:85vh;overflow:auto;box-shadow:0 20px 35px -10px rgba(0,0,0,0.3)';
-    const header = document.createElement('div');
-    header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:1rem 1.5rem;border-bottom:1px solid var(--gold-border);position:sticky;top:0;background:var(--bg);z-index:10';
-    header.innerHTML = `<h3 style="color:var(--gold);font-family:Cormorant Garamond,serif;font-size:1.4rem">${title}</h3><button onclick="cerrarModal()" style="background:none;border:none;font-size:1.8rem;cursor:pointer;color:var(--text-muted)">&times;</button>`;
-    const body = document.createElement('div');
-    body.style.cssText = 'padding:1.5rem';
-    body.innerHTML = content;
-    modalDiv.appendChild(header);
-    modalDiv.appendChild(body);
-    overlayDiv.appendChild(modalDiv);
-    document.body.appendChild(overlayDiv);
-    modal = overlayDiv;
-}
-
-function cerrarModal() {
-    if (modal) modal.remove();
-    modal = null;
-}
-
-function showModalMessageSimple(message, type = 'success') {
-    const existing = document.querySelector('.modal-temp-msg');
-    if (existing) existing.remove();
-    const msg = document.createElement('div');
-    if (type === 'error') {
-        msg.style.cssText = 'background:rgba(198,40,40,0.1);border:1px solid #c62828;color:#c62828;padding:0.75rem;margin-bottom:1rem;border-radius:8px;text-align:center';
-    } else {
-        msg.style.cssText = 'background:rgba(46,125,50,0.1);border:1px solid #2e7d32;color:#2e7d32;padding:0.75rem;margin-bottom:1rem;border-radius:8px;text-align:center';
-    }
-    msg.textContent = message;
-    const modalBody = document.querySelector('#dashboardOverlay > div > div:last-child');
-    if (modalBody && modalBody.firstChild) {
-        modalBody.insertBefore(msg, modalBody.firstChild);
-    }
-    setTimeout(() => msg.remove(), 3000);
-}
-
 // ==================== CLIENTE ====================
 
 async function verMisCasos() {
     const user = window.db?.obtenerUsuarioActual();
-    if (!user) {
-        showModalMessageSimple('⚠️ Debes iniciar sesión', 'error');
-        return;
-    }
-    
-    console.log('👤 Usuario actual:', user.email);
+    if (!user) { showSimpleMessage('⚠️ Debes iniciar sesión', 'error'); return; }
     
     const casos = await window.db.casos.obtenerPorUsuario(user.email);
-    console.log('📋 Casos encontrados:', casos);
     
-    let html = `
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+    let html = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
             <h2 style="font-family:Cormorant Garamond,serif;color:var(--gold)">⚖️ Mis Casos</h2>
             <button class="dash-card-btn" onclick="cerrarModal();setTimeout(()=>nuevoCaso(),100)">+ Nuevo Caso</button>
-        </div>
-        <div style="display:grid;gap:1rem">
-    `;
+        </div><div style="display:grid;gap:1rem">`;
     
     if (!casos || casos.length === 0) {
-        html += `<div style="text-align:center;padding:3rem;color:var(--text-muted);border:1px dashed var(--gold-border);border-radius:8px">
-            📭 No tienes casos registrados. 
-            <br><br>Para crear un caso, ve al chat y selecciona un área legal. 
-            <br><br>O haz clic en <strong>"+ Nuevo Caso"</strong> arriba.
-        </div>`;
+        html += `<div style="text-align:center;padding:3rem;color:var(--text-muted);border:1px dashed var(--gold-border);border-radius:8px">📭 No tienes casos registrados.<br><br>Para crear un caso, ve al chat y selecciona un área legal.<br><br>O haz clic en <strong>"+ Nuevo Caso"</strong> arriba.</div>`;
     } else {
         casos.forEach(c => {
-            html += `
-                <div style="background:var(--card-hover);border:1px solid var(--gold-border);border-radius:8px;padding:1rem">
+            html += `<div style="background:var(--card-hover);border:1px solid var(--gold-border);border-radius:8px;padding:1rem">
                     <div style="display:flex;justify-content:space-between;align-items:center">
                         <h3 style="font-family:Cormorant Garamond,serif">📋 ${c.titulo}</h3>
                         <span style="background:var(--gold-dim);color:var(--gold);padding:0.2rem 0.6rem;border-radius:12px;font-size:0.7rem">${c.estado}</span>
@@ -171,8 +111,7 @@ async function verMisCasos() {
                         <span>📅 ${new Date(c.fechaCreacion).toLocaleDateString()}</span>
                         <span>⚖️ ${c.area}</span>
                     </div>
-                </div>
-            `;
+                </div>`;
         });
     }
     html += `</div>`;
@@ -180,47 +119,30 @@ async function verMisCasos() {
 }
 
 function nuevoCaso() {
-    mostrarModal(`
-        <div style="display:flex;flex-direction:column;gap:1rem">
+    mostrarModal(`<div style="display:flex;flex-direction:column;gap:1rem">
             <h3 style="color:var(--gold);font-family:Cormorant Garamond,serif">Nuevo Caso</h3>
             <input id="nuevoCaso-titulo" placeholder="Título del caso" style="width:100%;padding:0.8rem;background:var(--bg2);border:1px solid var(--gold-border);border-radius:6px">
             <textarea id="nuevoCaso-desc" rows="3" placeholder="Describe tu situación legal..." style="width:100%;padding:0.8rem;background:var(--bg2);border:1px solid var(--gold-border);border-radius:6px"></textarea>
             <select id="nuevoCaso-area" style="width:100%;padding:0.8rem;background:var(--bg2);border:1px solid var(--gold-border);border-radius:6px">
                 <option value="">Selecciona el área legal</option>
-                <option>Derecho Civil</option>
-                <option>Derecho Penal</option>
-                <option>Derecho Laboral</option>
-                <option>Derecho de Familia</option>
-                <option>Derecho Comercial</option>
-                <option>Derecho Administrativo</option>
+                <option>Derecho Civil</option><option>Derecho Penal</option><option>Derecho Laboral</option>
+                <option>Derecho de Familia</option><option>Derecho Comercial</option><option>Derecho Administrativo</option>
             </select>
             <div style="display:flex;gap:1rem;margin-top:0.5rem">
                 <button class="btn-gold" onclick="crearCaso()" style="flex:1">Crear Caso</button>
                 <button class="btn-ghost" onclick="cerrarModal()" style="flex:1">Cancelar</button>
             </div>
-        </div>
-    `, 'Nuevo Caso');
+        </div>`, 'Nuevo Caso');
 }
 
 async function crearCaso() {
     const titulo = document.getElementById('nuevoCaso-titulo')?.value;
-    if (!titulo) {
-        showModalMessageSimple('✗ El título es obligatorio', 'error');
-        return;
-    }
+    if (!titulo) { showSimpleMessage('✗ El título es obligatorio', 'error'); return; }
     const user = window.db?.obtenerUsuarioActual();
     if (!user) return;
     
     const area = document.getElementById('nuevoCaso-area')?.value || 'Civil';
-    
-    const nuevoCaso = await window.db.casos.crear(
-        user.email, 
-        user.nombre + ' ' + user.apellido,
-        titulo, 
-        document.getElementById('nuevoCaso-desc')?.value || '', 
-        area
-    );
-    
+    const nuevoCaso = await window.db.casos.crear(user.email, user.nombre + ' ' + user.apellido, titulo, document.getElementById('nuevoCaso-desc')?.value || '', area);
     cerrarModal();
     showToast(`✓ Caso creado exitosamente. Abogado asignado: ${nuevoCaso.abogadoNombre || 'Pendiente'}`, 'success');
     setTimeout(() => verMisCasos(), 500);
@@ -231,28 +153,23 @@ async function verCitas() {
     if (!user) return;
     const citas = await window.db.citas.obtenerPorUsuario(user.email);
     
-    let html = `
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
+    let html = `<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
             <h2 style="font-family:Cormorant Garamond,serif;color:var(--gold)">📅 Mis Citas</h2>
             <button class="dash-card-btn" onclick="cerrarModal();setTimeout(()=>nuevaCita(),100)">+ Agendar Cita</button>
-        </div>
-        <div style="display:grid;gap:1rem">
-    `;
+        </div><div style="display:grid;gap:1rem">`;
     
     if (!citas.length) {
         html += `<div style="text-align:center;padding:3rem;color:var(--text-muted);border:1px dashed var(--gold-border);border-radius:8px">📅 No tienes citas agendadas</div>`;
     } else {
         citas.forEach(c => {
-            html += `
-                <div style="background:var(--card-hover);border:1px solid var(--gold-border);border-radius:8px;padding:1rem">
+            html += `<div style="background:var(--card-hover);border:1px solid var(--gold-border);border-radius:8px;padding:1rem">
                     <div style="display:flex;justify-content:space-between;align-items:center">
                         <h3 style="font-family:Cormorant Garamond,serif">📌 ${c.titulo}</h3>
                         <span style="background:var(--gold-dim);color:var(--gold);padding:0.2rem 0.6rem;border-radius:12px;font-size:0.7rem">${c.estado || 'Pendiente'}</span>
                     </div>
                     <p style="color:var(--gold);font-size:0.85rem;margin-top:0.5rem">📅 ${new Date(c.fecha).toLocaleString()}</p>
                     <p style="color:var(--text-muted);font-size:0.8rem;margin-top:0.3rem">${c.descripcion || ''}</p>
-                </div>
-            `;
+                </div>`;
         });
     }
     html += `</div>`;
@@ -260,8 +177,7 @@ async function verCitas() {
 }
 
 function nuevaCita() {
-    mostrarModal(`
-        <div style="display:flex;flex-direction:column;gap:1rem">
+    mostrarModal(`<div style="display:flex;flex-direction:column;gap:1rem">
             <h3 style="color:var(--gold);font-family:Cormorant Garamond,serif">Agendar Nueva Cita</h3>
             <input id="nuevaCita-titulo" placeholder="Título de la cita" style="width:100%;padding:0.8rem;background:var(--bg2);border:1px solid var(--gold-border);border-radius:6px">
             <input type="datetime-local" id="nuevaCita-fecha" style="width:100%;padding:0.8rem;background:var(--bg2);border:1px solid var(--gold-border);border-radius:6px">
@@ -270,22 +186,17 @@ function nuevaCita() {
                 <button class="btn-gold" onclick="crearCita()" style="flex:1">Agendar</button>
                 <button class="btn-ghost" onclick="cerrarModal()" style="flex:1">Cancelar</button>
             </div>
-        </div>
-    `, 'Nueva Cita');
+        </div>`, 'Nueva Cita');
 }
 
 async function crearCita() {
     const titulo = document.getElementById('nuevaCita-titulo')?.value;
     const fecha = document.getElementById('nuevaCita-fecha')?.value;
-    if (!titulo || !fecha) {
-        showModalMessageSimple('✗ Completa todos los campos', 'error');
-        return;
-    }
+    if (!titulo || !fecha) { showSimpleMessage('✗ Completa todos los campos', 'error'); return; }
     const user = window.db?.obtenerUsuarioActual();
     if (!user) return;
     
     await window.db.citas.crear(user.email, titulo, fecha, document.getElementById('nuevaCita-desc')?.value || '');
-    
     cerrarModal();
     showToast('✓ Cita agendada exitosamente', 'success');
     setTimeout(() => verCitas(), 500);
@@ -296,8 +207,7 @@ async function verPagos() {
     if (!user) return;
     const pagos = await window.db.pagos.obtenerPorUsuario(user.email);
     
-    let html = `
-        <div style="margin-bottom:1.5rem">
+    let html = `<div style="margin-bottom:1.5rem">
             <h2 style="font-family:Cormorant Garamond,serif;color:var(--gold);margin-bottom:1rem">💰 Pagos y Facturas</h2>
             <div style="background:var(--bg2);border:1px solid var(--gold-border);border-radius:8px;padding:1rem;margin-bottom:1.5rem">
                 <h3 style="font-size:1rem;margin-bottom:0.8rem">🔹 Nueva Factura</h3>
@@ -306,22 +216,17 @@ async function verPagos() {
                 <button class="btn-gold" onclick="generarFactura()" style="width:100%;margin-top:0.5rem">Generar Factura</button>
             </div>
             <h3 style="margin-bottom:0.8rem">📜 Historial de Pagos</h3>
-            <div id="lista-pagos" style="display:grid;gap:0.8rem">
-                ${!pagos.length ? '<div style="text-align:center;padding:2rem;color:var(--text-muted);border:1px dashed var(--gold-border);border-radius:8px">💰 No hay pagos registrados</div>' : ''}
-            </div>
-        </div>
-    `;
+            <div id="lista-pagos" style="display:grid;gap:0.8rem">${!pagos.length ? '<div style="text-align:center;padding:2rem;color:var(--text-muted);border:1px dashed var(--gold-border);border-radius:8px">💰 No hay pagos registrados</div>' : ''}</div>
+        </div>`;
     mostrarModal(html, 'Pagos');
     
     const container = document.getElementById('lista-pagos');
     if (container && pagos.length) {
         pagos.forEach(p => {
-            container.innerHTML += `
-                <div style="background:var(--card-hover);border:1px solid var(--gold-border);border-radius:8px;padding:0.8rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap">
-                    <div><strong>${p.concepto}</strong><br><small>${new Date(p.fecha).toLocaleString()}</small></div>
-                    <div><span style="color:var(--gold);font-weight:bold">$${p.monto}</span></div>
-                </div>
-            `;
+            container.innerHTML += `<div style="background:var(--card-hover);border:1px solid var(--gold-border);border-radius:8px;padding:0.8rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap">
+                <div><strong>${p.concepto}</strong><br><small>${new Date(p.fecha).toLocaleString()}</small></div>
+                <div><span style="color:var(--gold);font-weight:bold">$${p.monto}</span></div>
+            </div>`;
         });
     }
 }
@@ -329,33 +234,23 @@ async function verPagos() {
 function generarFactura() {
     const concepto = document.getElementById('pago-concepto')?.value;
     const monto = document.getElementById('pago-monto')?.value;
-    if (!concepto || !monto) {
-        showModalMessageSimple('✗ Completa concepto y monto', 'error');
-        return;
-    }
-    
+    if (!concepto || !monto) { showSimpleMessage('✗ Completa concepto y monto', 'error'); return; }
     const user = window.db?.obtenerUsuarioActual();
-    if (user) {
-        window.db.pagos.crear(user.email, null, null, concepto, parseFloat(monto));
-    }
-    
-    showModalMessageSimple(`✓ Factura generada: ${concepto} - $${monto}`, 'success');
+    if (user) window.db.pagos.crear(user.email, null, null, concepto, parseFloat(monto));
+    showSimpleMessage(`✓ Factura generada: ${concepto} - $${monto}`, 'success');
     setTimeout(() => verPagos(), 1000);
 }
+
+// ==================== DOCUMENTOS CLIENTE ====================
 
 async function verDocumentosCliente() {
     const user = window.db?.obtenerUsuarioActual();
     if (!user) return;
-    
     const docs = await window.db.documentos.obtenerPorUsuario(user.email);
-    console.log('📄 Documentos encontrados:', docs);
-    
     const pendientes = (docs || []).filter(d => d.estado === 'pendiente');
     const subidos = (docs || []).filter(d => d.estado === 'subido');
     
-    let html = `
-        <div>
-            <h2 style="font-family:Cormorant Garamond,serif;color:var(--gold);margin-bottom:1rem">📄 Mis Documentos</h2>
+    let html = `<div><h2 style="font-family:Cormorant Garamond,serif;color:var(--gold);margin-bottom:1rem">📄 Mis Documentos</h2>
             <div style="background:rgba(237,108,2,0.1);border:1px solid #ed6c02;border-radius:8px;padding:1rem;margin-bottom:1.5rem">
                 <h3 style="margin-bottom:0.8rem;color:#ed6c02">⚠️ Documentos Pendientes por Subir</h3>
                 <div id="lista-pendientes-cliente">${pendientes.length === 0 ? '<p style="color:var(--text-muted)">✅ No hay documentos pendientes</p>' : ''}</div>
@@ -364,30 +259,31 @@ async function verDocumentosCliente() {
                 <h3 style="margin-bottom:0.8rem">📎 Documentos Subidos</h3>
                 <div id="lista-subidos-cliente">${subidos.length === 0 ? '<p style="color:var(--text-muted)">📭 No hay documentos subidos</p>' : ''}</div>
             </div>
-        </div>
-    `;
+            <div style="background:var(--bg2);border:1px solid var(--gold-border);border-radius:8px;padding:1rem">
+                <h3 style="margin-bottom:0.8rem">➕ Subir Nuevo Documento</h3>
+                <input id="doc-nombre" placeholder="Nombre del documento" style="width:100%;padding:0.6rem;margin-bottom:0.5rem;background:var(--bg);border:1px solid var(--gold-border);border-radius:4px">
+                <textarea id="doc-desc" rows="2" placeholder="Descripción" style="width:100%;padding:0.6rem;background:var(--bg);border:1px solid var(--gold-border);border-radius:4px"></textarea>
+                <button class="btn-gold" onclick="subirDocumentoNuevo()" style="width:100%;margin-top:0.5rem">📤 Subir Documento</button>
+            </div>
+        </div>`;
     mostrarModal(html, 'Mis Documentos');
     
     const pendientesContainer = document.getElementById('lista-pendientes-cliente');
     if (pendientesContainer && pendientes.length) {
-        pendientesContainer.innerHTML = pendientes.map(d => `
-            <div style="background:var(--card-hover);border:1px solid #ed6c02;border-radius:8px;padding:0.8rem;margin-bottom:0.8rem">
-                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap">
-                    <div><strong>📄 ${d.nombre}</strong><p style="font-size:0.8rem;color:var(--text-muted);margin-top:0.3rem">${d.descripcion || ''}</p></div>
-                    <button class="doc-btn" onclick="subirDocumentoPendiente(${d.id})">Subir ahora</button>
-                </div>
+        pendientesContainer.innerHTML = pendientes.map(d => `<div style="background:var(--card-hover);border:1px solid #ed6c02;border-radius:8px;padding:0.8rem;margin-bottom:0.8rem">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap">
+                <div><strong>📄 ${d.nombre}</strong><p style="font-size:0.8rem;color:var(--text-muted);margin-top:0.3rem">${d.descripcion || ''}</p></div>
+                <button class="doc-btn" onclick="subirDocumentoPendiente(${d.id})">Subir ahora</button>
             </div>
-        `).join('');
+        </div>`).join('');
     }
     
     const subidosContainer = document.getElementById('lista-subidos-cliente');
     if (subidosContainer && subidos.length) {
-        subidosContainer.innerHTML = subidos.map(d => `
-            <div style="background:var(--card-hover);border:1px solid var(--gold-border);border-radius:8px;padding:0.8rem;margin-bottom:0.8rem">
-                <strong>📄 ${d.nombre}</strong><p style="font-size:0.8rem;color:var(--text-muted);margin-top:0.3rem">${d.descripcion || ''}</p>
-                <small style="color:#2e7d32">✅ Subido el ${d.fechaSubida ? new Date(d.fechaSubida).toLocaleDateString() : 'recientemente'}</small>
-            </div>
-        `).join('');
+        subidosContainer.innerHTML = subidos.map(d => `<div style="background:var(--card-hover);border:1px solid var(--gold-border);border-radius:8px;padding:0.8rem;margin-bottom:0.8rem">
+            <strong>📄 ${d.nombre}</strong><p style="font-size:0.8rem;color:var(--text-muted);margin-top:0.3rem">${d.descripcion || ''}</p>
+            <small style="color:#2e7d32">✅ Subido el ${d.fechaSubida ? new Date(d.fechaSubida).toLocaleDateString() : 'recientemente'}</small>
+        </div>`).join('');
     }
 }
 
@@ -405,9 +301,20 @@ async function subirDocumentoPendiente(id) {
     input.click();
 }
 
-async function cargarDocumentosPendientesCliente() {
+async function subirDocumentoNuevo() {
+    const nombre = document.getElementById('doc-nombre')?.value;
+    if (!nombre) { showSimpleMessage('✗ El nombre del documento es obligatorio', 'error'); return; }
     const user = window.db?.obtenerUsuarioActual();
     if (!user) return;
+    await window.db.documentos.agregar(user.email, nombre, document.getElementById('doc-desc')?.value || '', 'General');
+    showToast('✓ Documento subido exitosamente', 'success');
+    cerrarModal();
+    setTimeout(() => verDocumentosCliente(), 500);
+}
+
+async function cargarDocumentosPendientesCliente() {
+    const user = window.db?.obtenerUsuarioActual();
+    if (!user || user.role !== 'cliente') return;
     const docs = await window.db.documentos.pendientes(user.email);
     
     let section = document.getElementById('doc-pend-section');
@@ -416,45 +323,38 @@ async function cargarDocumentosPendientesCliente() {
     if (docs && docs.length > 0) {
         section = document.createElement('div');
         section.id = 'doc-pend-section';
-        section.innerHTML = `
-            <div style="margin-top:2rem;padding:1rem;background:rgba(237,108,2,0.1);border:1px solid #ed6c02;border-radius:8px">
-                <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.8rem"><span>⚠️</span><strong>Documentos Pendientes por Subir (${docs.length})</strong></div>
-                <div id="lista-docs-pendientes-dashboard"></div>
-            </div>
-        `;
+        section.innerHTML = `<div style="margin-top:2rem;padding:1rem;background:rgba(237,108,2,0.1);border:1px solid #ed6c02;border-radius:8px">
+            <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.8rem"><span>⚠️</span><strong>Documentos Pendientes por Subir (${docs.length})</strong></div>
+            <div id="lista-docs-pendientes-dashboard"></div>
+        </div>`;
         document.querySelector('#dashboardOverlay > div > div:last-child')?.appendChild(section);
         
         const container = document.getElementById('lista-docs-pendientes-dashboard');
         if (container) {
-            container.innerHTML = docs.map(d => `
-                <div style="display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0;border-bottom:1px solid var(--gold-border)">
-                    <div><strong>${d.nombre}</strong><p style="font-size:0.7rem;color:var(--text-muted)">${d.descripcion || ''}</p></div>
-                    <button class="doc-btn" onclick="subirDocumentoPendiente(${d.id})">Subir</button>
-                </div>
-            `).join('');
+            container.innerHTML = docs.map(d => `<div style="display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0;border-bottom:1px solid var(--gold-border)">
+                <div><strong>${d.nombre}</strong><p style="font-size:0.7rem;color:var(--text-muted)">${d.descripcion || ''}</p></div>
+                <button class="doc-btn" onclick="subirDocumentoPendiente(${d.id})">Subir</button>
+            </div>`).join('');
         }
     }
 }
 
+// ==================== CALIFICACIONES ====================
+
 function verCalificaciones() {
-    mostrarModal(`
-        <div>
-            <h2 style="font-family:Cormorant Garamond,serif;color:var(--gold);margin-bottom:1rem">⭐ Calificar Abogado</h2>
-            <div style="background:var(--bg2);border:1px solid var(--gold-border);border-radius:8px;padding:1rem;margin-bottom:1rem">
-                <select id="cal-abogado" style="width:100%;padding:0.6rem;margin-bottom:0.8rem;background:var(--bg);border:1px solid var(--gold-border);border-radius:4px">
-                    <option>Selecciona un abogado</option>
-                    <option>Dr. Andrés Morales - Civil</option>
-                    <option>Dr. Felipe Soto - Penal</option>
-                    <option>Dra. Camila Ríos - Laboral</option>
-                </select>
-                <div id="estrellas" style="display:flex;gap:0.3rem;margin-bottom:0.8rem;font-size:1.5rem;cursor:pointer">
-                    ${[1,2,3,4,5].map(i => `<span onclick="seleccionarEstrella(${i})" id="estrella-${i}" style="color:var(--text-muted)">☆</span>`).join('')}
-                </div>
-                <textarea id="cal-resena" rows="2" placeholder="Cuéntanos tu experiencia..." style="width:100%;padding:0.6rem;background:var(--bg);border:1px solid var(--gold-border);border-radius:4px"></textarea>
-                <button class="btn-gold" onclick="enviarCalificacion()" style="width:100%;margin-top:0.8rem">Enviar Calificación</button>
+    mostrarModal(`<div><h2 style="font-family:Cormorant Garamond,serif;color:var(--gold);margin-bottom:1rem">⭐ Calificar Abogado</h2>
+        <div style="background:var(--bg2);border:1px solid var(--gold-border);border-radius:8px;padding:1rem;margin-bottom:1rem">
+            <select id="cal-abogado" style="width:100%;padding:0.6rem;margin-bottom:0.8rem;background:var(--bg);border:1px solid var(--gold-border);border-radius:4px">
+                <option>Selecciona un abogado</option>
+                <option>Dr. Andrés Morales - Civil</option><option>Dr. Felipe Soto - Penal</option><option>Dra. Camila Ríos - Laboral</option>
+            </select>
+            <div id="estrellas" style="display:flex;gap:0.3rem;margin-bottom:0.8rem;font-size:1.5rem;cursor:pointer">
+                ${[1,2,3,4,5].map(i => `<span onclick="seleccionarEstrella(${i})" id="estrella-${i}" style="color:var(--text-muted)">☆</span>`).join('')}
             </div>
+            <textarea id="cal-resena" rows="2" placeholder="Cuéntanos tu experiencia..." style="width:100%;padding:0.6rem;background:var(--bg);border:1px solid var(--gold-border);border-radius:4px"></textarea>
+            <button class="btn-gold" onclick="enviarCalificacion()" style="width:100%;margin-top:0.8rem">Enviar Calificación</button>
         </div>
-    `, 'Calificaciones');
+    </div>`, 'Calificaciones');
 }
 
 let calificacionSeleccionada = 0;
@@ -471,39 +371,33 @@ function seleccionarEstrella(puntuacion) {
 }
 
 function enviarCalificacion() {
-    if (calificacionSeleccionada === 0) {
-        showModalMessageSimple('✗ Selecciona una puntuación', 'error');
-        return;
-    }
-    showModalMessageSimple(`✓ Calificación de ${calificacionSeleccionada}★ enviada. ¡Gracias por tu opinión!`, 'success');
+    if (calificacionSeleccionada === 0) { showSimpleMessage('✗ Selecciona una puntuación', 'error'); return; }
+    showSimpleMessage(`✓ Calificación de ${calificacionSeleccionada}★ enviada. ¡Gracias por tu opinión!`, 'success');
     calificacionSeleccionada = 0;
 }
+
+// ==================== PERFIL ====================
 
 function verMiPerfil() {
     const user = window.db?.obtenerUsuarioActual();
     if (!user) return;
-    mostrarModal(`
-        <div style="display:flex;flex-direction:column;gap:1rem">
-            <div style="text-align:center"><div style="width:80px;height:80px;border-radius:50%;background:var(--gold-dim);display:flex;align-items:center;justify-content:center;margin:0 auto;font-size:2rem;border:2px solid var(--gold)">👤</div></div>
-            <input id="perfil-nombre" value="${user.nombre || ''}" placeholder="Nombre" style="padding:0.8rem;background:var(--bg2);border:1px solid var(--gold-border);border-radius:6px">
-            <input id="perfil-apellido" value="${user.apellido || ''}" placeholder="Apellido" style="padding:0.8rem;background:var(--bg2);border:1px solid var(--gold-border);border-radius:6px">
-            <input id="perfil-telefono" value="${user.telefono || ''}" placeholder="Teléfono" style="padding:0.8rem;background:var(--bg2);border:1px solid var(--gold-border);border-radius:6px">
-            <div style="display:flex;gap:1rem;margin-top:0.5rem">
-                <button class="btn-gold" onclick="guardarPerfil()" style="flex:1">Guardar Cambios</button>
-                <button class="btn-ghost" onclick="cerrarModal()" style="flex:1">Cancelar</button>
-            </div>
+    mostrarModal(`<div style="display:flex;flex-direction:column;gap:1rem">
+        <div style="text-align:center"><div style="width:80px;height:80px;border-radius:50%;background:var(--gold-dim);display:flex;align-items:center;justify-content:center;margin:0 auto;font-size:2rem;border:2px solid var(--gold)">👤</div></div>
+        <input id="perfil-nombre" value="${user.nombre || ''}" placeholder="Nombre" style="padding:0.8rem;background:var(--bg2);border:1px solid var(--gold-border);border-radius:6px">
+        <input id="perfil-apellido" value="${user.apellido || ''}" placeholder="Apellido" style="padding:0.8rem;background:var(--bg2);border:1px solid var(--gold-border);border-radius:6px">
+        <input id="perfil-telefono" value="${user.telefono || ''}" placeholder="Teléfono" style="padding:0.8rem;background:var(--bg2);border:1px solid var(--gold-border);border-radius:6px">
+        <div style="display:flex;gap:1rem;margin-top:0.5rem">
+            <button class="btn-gold" onclick="guardarPerfil()" style="flex:1">Guardar Cambios</button>
+            <button class="btn-ghost" onclick="cerrarModal()" style="flex:1">Cancelar</button>
         </div>
-    `, 'Mi Perfil');
+    </div>`, 'Mi Perfil');
 }
 
 async function guardarPerfil() {
     const user = window.db?.obtenerUsuarioActual();
     if (!user) return;
     const nombre = document.getElementById('perfil-nombre')?.value;
-    if (!nombre) {
-        showModalMessageSimple('✗ El nombre es obligatorio', 'error');
-        return;
-    }
+    if (!nombre) { showSimpleMessage('✗ El nombre es obligatorio', 'error'); return; }
     user.nombre = nombre;
     user.apellido = document.getElementById('perfil-apellido')?.value || '';
     user.telefono = document.getElementById('perfil-telefono')?.value || '';
@@ -528,19 +422,17 @@ async function verCasosAbogado() {
         html += `<div style="text-align:center;padding:3rem;color:var(--text-muted);border:1px dashed var(--gold-border);border-radius:8px">📭 No tienes casos asignados aún</div>`;
     } else {
         misCasos.forEach(c => {
-            html += `
-                <div style="background:var(--card-hover);border:1px solid var(--gold-border);border-radius:8px;padding:1rem">
-                    <div style="display:flex;justify-content:space-between;align-items:center"><h3 style="font-family:Cormorant Garamond,serif">📋 ${c.titulo}</h3><span style="background:var(--gold-dim);color:var(--gold);padding:0.2rem 0.6rem;border-radius:12px;font-size:0.7rem">${c.estado}</span></div>
-                    <p style="color:var(--text-muted);margin-top:0.5rem">${c.descripcion || 'Sin descripción'}</p>
-                    <div style="display:flex;gap:1rem;margin-top:0.8rem;font-size:0.7rem;color:var(--gold)"><span>👤 Cliente: ${c.usuarioNombre || c.usuarioEmail}</span><span>📅 ${new Date(c.fechaCreacion).toLocaleDateString()}</span></div>
-                    <div style="margin-top:1rem"><select id="estado-${c.id}" style="padding:0.4rem;background:var(--bg);border:1px solid var(--gold-border);border-radius:4px">
-                        <option value="Pendiente" ${c.estado === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
-                        <option value="En Progreso" ${c.estado === 'En Progreso' ? 'selected' : ''}>En Progreso</option>
-                        <option value="Resuelto" ${c.estado === 'Resuelto' ? 'selected' : ''}>Resuelto</option>
-                        <option value="Cerrado" ${c.estado === 'Cerrado' ? 'selected' : ''}>Cerrado</option>
-                    </select><button class="dash-card-btn" style="margin-left:0.5rem" onclick="actualizarEstadoCaso(${c.id})">Actualizar Estado</button></div>
-                </div>
-            `;
+            html += `<div style="background:var(--card-hover);border:1px solid var(--gold-border);border-radius:8px;padding:1rem">
+                <div style="display:flex;justify-content:space-between;align-items:center"><h3 style="font-family:Cormorant Garamond,serif">📋 ${c.titulo}</h3><span style="background:var(--gold-dim);color:var(--gold);padding:0.2rem 0.6rem;border-radius:12px;font-size:0.7rem">${c.estado}</span></div>
+                <p style="color:var(--text-muted);margin-top:0.5rem">${c.descripcion || 'Sin descripción'}</p>
+                <div style="display:flex;gap:1rem;margin-top:0.8rem;font-size:0.7rem;color:var(--gold)"><span>👤 Cliente: ${c.usuarioNombre || c.usuarioEmail}</span><span>📅 ${new Date(c.fechaCreacion).toLocaleDateString()}</span></div>
+                <div style="margin-top:1rem"><select id="estado-${c.id}" style="padding:0.4rem;background:var(--bg);border:1px solid var(--gold-border);border-radius:4px">
+                    <option value="Pendiente" ${c.estado === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
+                    <option value="En Progreso" ${c.estado === 'En Progreso' ? 'selected' : ''}>En Progreso</option>
+                    <option value="Resuelto" ${c.estado === 'Resuelto' ? 'selected' : ''}>Resuelto</option>
+                    <option value="Cerrado" ${c.estado === 'Cerrado' ? 'selected' : ''}>Cerrado</option>
+                </select><button class="dash-card-btn" style="margin-left:0.5rem" onclick="actualizarEstadoCaso(${c.id})">Actualizar Estado</button></div>
+            </div>`;
         });
     }
     html += `</div></div>`;
@@ -599,14 +491,12 @@ async function verificarAbogadosAdmin() {
         html += `<div style="text-align:center;padding:3rem;color:var(--text-muted);border:1px dashed var(--gold-border);border-radius:8px">📭 No hay abogados registrados</div>`;
     } else {
         abogados.forEach(a => {
-            html += `
-                <div style="background:var(--card-hover);border:1px solid var(--gold-border);border-radius:8px;padding:1rem">
-                    <div style="display:flex;justify-content:space-between;align-items:center"><h3>${a.nombre} ${a.apellido}</h3><span style="background:${a.activo ? '#2e7d32' : '#ed6c02'};color:white;padding:0.2rem 0.6rem;border-radius:12px;font-size:0.7rem">${a.activo ? 'Verificado' : 'Pendiente'}</span></div>
-                    <p style="color:var(--text-muted);margin-top:0.5rem">📧 ${a.email}</p>
-                    <p style="font-size:0.75rem;color:var(--gold)">⚖️ ${a.especialidad || 'No especificada'}</p>
-                    <div style="margin-top:1rem"><button class="dash-card-btn" onclick="aprobarAbogado('${a.email}')">${a.activo ? 'Desactivar' : 'Aprobar'}</button></div>
-                </div>
-            `;
+            html += `<div style="background:var(--card-hover);border:1px solid var(--gold-border);border-radius:8px;padding:1rem">
+                <div style="display:flex;justify-content:space-between;align-items:center"><h3>${a.nombre} ${a.apellido}</h3><span style="background:${a.activo ? '#2e7d32' : '#ed6c02'};color:white;padding:0.2rem 0.6rem;border-radius:12px;font-size:0.7rem">${a.activo ? 'Verificado' : 'Pendiente'}</span></div>
+                <p style="color:var(--text-muted);margin-top:0.5rem">📧 ${a.email}</p>
+                <p style="font-size:0.75rem;color:var(--gold)">⚖️ ${a.especialidad || 'No especificada'}</p>
+                <div style="margin-top:1rem"><button class="dash-card-btn" onclick="aprobarAbogado('${a.email}')">${a.activo ? 'Desactivar' : 'Aprobar'}</button></div>
+            </div>`;
         });
     }
     html += `</div></div>`;
@@ -629,50 +519,41 @@ async function verTodosUsuarios() {
     const clientes = usuarios.filter(u => u.role === 'cliente');
     const abogados = usuarios.filter(u => u.role === 'abogado');
     
-    let html = `
-        <div>
-            <h2 style="font-family:Cormorant Garamond,serif;color:var(--gold);margin-bottom:1rem">👥 Todos los Usuarios</h2>
-            <div style="background:var(--bg2);border:1px solid var(--gold-border);border-radius:8px;padding:1rem;margin-bottom:1.5rem">
-                <h3 style="margin-bottom:0.8rem">👤 Clientes (${clientes.length})</h3>
-                ${clientes.length ? clientes.map(c => `<div style="padding:0.5rem 0;border-bottom:1px solid var(--gold-border)"><strong>${c.nombre} ${c.apellido}</strong><br><small>${c.email}</small></div>`).join('') : '<p>No hay clientes registrados</p>'}
-            </div>
-            <div style="background:var(--bg2);border:1px solid var(--gold-border);border-radius:8px;padding:1rem">
-                <h3 style="margin-bottom:0.8rem">⚖️ Abogados (${abogados.length})</h3>
-                ${abogados.length ? abogados.map(a => `<div style="padding:0.5rem 0;border-bottom:1px solid var(--gold-border)"><strong>${a.nombre} ${a.apellido}</strong><br><small>${a.email} · ${a.activo ? '✅ Verificado' : '⏳ Pendiente'} · ${a.especialidad || ''}</small></div>`).join('') : '<p>No hay abogados registrados</p>'}
-            </div>
+    let html = `<div><h2 style="font-family:Cormorant Garamond,serif;color:var(--gold);margin-bottom:1rem">👥 Todos los Usuarios</h2>
+        <div style="background:var(--bg2);border:1px solid var(--gold-border);border-radius:8px;padding:1rem;margin-bottom:1.5rem">
+            <h3 style="margin-bottom:0.8rem">👤 Clientes (${clientes.length})</h3>
+            ${clientes.length ? clientes.map(c => `<div style="padding:0.5rem 0;border-bottom:1px solid var(--gold-border)"><strong>${c.nombre} ${c.apellido}</strong><br><small>${c.email}</small></div>`).join('') : '<p>No hay clientes registrados</p>'}
         </div>
-    `;
+        <div style="background:var(--bg2);border:1px solid var(--gold-border);border-radius:8px;padding:1rem">
+            <h3 style="margin-bottom:0.8rem">⚖️ Abogados (${abogados.length})</h3>
+            ${abogados.length ? abogados.map(a => `<div style="padding:0.5rem 0;border-bottom:1px solid var(--gold-border)"><strong>${a.nombre} ${a.apellido}</strong><br><small>${a.email} · ${a.activo ? '✅ Verificado' : '⏳ Pendiente'} · ${a.especialidad || ''}</small></div>`).join('') : '<p>No hay abogados registrados</p>'}
+        </div>
+    </div>`;
     mostrarModal(html, 'Todos los Usuarios');
 }
 
 async function verCasosGlobalesAdmin() {
     const casos = await window.db.casos.obtenerTodos();
-    console.log('🌍 Todos los casos:', casos);
-    
     let html = `<div><h2 style="font-family:Cormorant Garamond,serif;color:var(--gold);margin-bottom:1rem">🌍 Casos Globales</h2><div style="display:grid;gap:1rem">`;
     
     if (!casos || casos.length === 0) {
-        html += `<div style="text-align:center;padding:3rem;color:var(--text-muted);border:1px dashed var(--gold-border);border-radius:8px">
-            📭 No hay casos registrados. 
-            <br><br>Los casos se crean cuando un cliente inicia un chat y selecciona un área legal.
-        </div>`;
+        html += `<div style="text-align:center;padding:3rem;color:var(--text-muted);border:1px dashed var(--gold-border);border-radius:8px">📭 No hay casos registrados.<br><br>Los casos se crean cuando un cliente inicia un chat y selecciona un área legal.</div>`;
     } else {
         casos.forEach(c => {
-            html += `
-                <div style="background:var(--card-hover);border-left:3px solid var(--gold);border-radius:8px;padding:1rem;margin-bottom:0.8rem">
-                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem">
-                        <h3 style="font-family:Cormorant Garamond,serif">📋 ${c.titulo}</h3>
-                        <span style="background:${c.estado === 'Cerrado' ? '#2e7d32' : c.estado === 'En Progreso' ? '#2980b9' : '#ed6c02'};color:white;padding:0.2rem 0.6rem;border-radius:12px;font-size:0.7rem">${c.estado}</span>
-                    </div>
-                    <p style="color:var(--text-muted);margin-top:0.5rem">${c.descripcion || 'Sin descripción'}</p>
-                    <div style="display:flex;gap:1rem;margin-top:0.5rem;font-size:0.75rem;flex-wrap:wrap">
-                        <span>👤 <strong>Cliente:</strong> ${c.usuarioNombre || c.usuarioEmail}</span>
-                        <span>⚖️ <strong>Abogado:</strong> ${c.abogadoNombre || 'Sin asignar'}</span>
-                        <span>📅 ${new Date(c.fechaCreacion).toLocaleDateString()}</span>
-                        <span>🏷️ ${c.area}</span>
-                    </div>
+            const estadoColor = c.estado === 'Cerrado' ? '#2e7d32' : c.estado === 'En Progreso' ? '#2980b9' : '#ed6c02';
+            html += `<div style="background:var(--card-hover);border-left:3px solid var(--gold);border-radius:8px;padding:1rem;margin-bottom:0.8rem">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem">
+                    <h3 style="font-family:Cormorant Garamond,serif">📋 ${c.titulo}</h3>
+                    <span style="background:${estadoColor};color:white;padding:0.2rem 0.6rem;border-radius:12px;font-size:0.7rem">${c.estado}</span>
                 </div>
-            `;
+                <p style="color:var(--text-muted);margin-top:0.5rem">${c.descripcion || 'Sin descripción'}</p>
+                <div style="display:flex;gap:1rem;margin-top:0.5rem;font-size:0.75rem;flex-wrap:wrap">
+                    <span>👤 <strong>Cliente:</strong> ${c.usuarioNombre || c.usuarioEmail}</span>
+                    <span>⚖️ <strong>Abogado:</strong> ${c.abogadoNombre || 'Sin asignar'}</span>
+                    <span>📅 ${new Date(c.fechaCreacion).toLocaleDateString()}</span>
+                    <span>🏷️ ${c.area}</span>
+                </div>
+            </div>`;
         });
     }
     html += `</div></div>`;
@@ -694,151 +575,12 @@ async function verTransaccionesAdmin() {
         html += `<div style="text-align:center;padding:3rem;color:var(--text-muted);border:1px dashed var(--gold-border);border-radius:8px">💰 No hay transacciones registradas</div>`;
     } else {
         todosPagos.forEach(p => {
-            html += `<div style="background:var(--card-hover);border:1px solid var(--gold-border);border-radius:8px;padding:0.8rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap"><div><strong>${p.concepto}</strong><br><small>${p.usuarioEmail} · ${new Date(p.fecha).toLocaleString()}</small></div><div><span style="color:var(--gold);font-weight:bold">$${p.monto}</span></div></div>`;
+            html += `<div style="background:var(--card-hover);border:1px solid var(--gold-border);border-radius:8px;padding:0.8rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap">
+                <div><strong>${p.concepto}</strong><br><small>${p.usuarioEmail} · ${new Date(p.fecha).toLocaleString()}</small></div>
+                <div><span style="color:var(--gold);font-weight:bold">$${p.monto}</span></div>
+            </div>`;
         });
     }
     html += `</div></div>`;
     mostrarModal(html, 'Transacciones');
-}
-// ==================== DOCUMENTOS PENDIENTES PARA CLIENTE ====================
-
-async function cargarDocumentosPendientesCliente() {
-    const user = window.db?.obtenerUsuarioActual();
-    if (!user || user.role !== 'cliente') return;
-    
-    console.log('🔄 Cargando documentos pendientes para:', user.email);
-    
-    try {
-        const docs = await window.db.documentos.obtenerPorUsuario(user.email);
-        console.log('📄 Documentos encontrados:', docs);
-        
-        const pendientes = (docs || []).filter(d => d.estado === 'pendiente');
-        
-        // Eliminar sección anterior si existe
-        let section = document.getElementById('doc-pend-dashboard');
-        if (section) section.remove();
-        
-        if (pendientes.length > 0) {
-            section = document.createElement('div');
-            section.id = 'doc-pend-dashboard';
-            section.innerHTML = `
-                <div style="margin-top:2rem;padding:1rem;background:rgba(237,108,2,0.1);border:1px solid #ed6c02;border-radius:8px">
-                    <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.8rem">
-                        <span>⚠️</span>
-                        <strong>📄 Documentos Pendientes (${pendientes.length})</strong>
-                    </div>
-                    <div id="lista-pendientes-dashboard"></div>
-                    <button class="dash-card-btn" style="margin-top:0.8rem;width:100%" onclick="verDocumentosCliente()">Ver todos mis documentos →</button>
-                </div>
-            `;
-            const dashboardContainer = document.querySelector('#dashboardOverlay > div > div:last-child');
-            if (dashboardContainer) dashboardContainer.appendChild(section);
-            
-            const container = document.getElementById('lista-pendientes-dashboard');
-            if (container) {
-                container.innerHTML = pendientes.slice(0, 3).map(d => `
-                    <div style="display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0;border-bottom:1px solid var(--gold-border)">
-                        <div>
-                            <strong>📄 ${d.nombre}</strong>
-                            <p style="font-size:0.7rem;color:var(--text-muted)">${d.descripcion || ''}</p>
-                        </div>
-                        <button class="doc-btn" onclick="subirDocumentoPendiente(${d.id})">Subir</button>
-                    </div>
-                `).join('');
-            }
-        }
-    } catch (error) {
-        console.error('❌ Error al cargar documentos:', error);
-    }
-}
-
-async function subirDocumentoPendiente(id) {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.onchange = async (e) => {
-        if (e.target.files[0]) {
-            try {
-                await window.db.documentos.subir(id, e.target.files[0].name);
-                showToast('✓ Documento subido exitosamente', 'success');
-                // Recargar listas
-                await cargarDocumentosPendientesCliente();
-                if (typeof verDocumentosCliente === 'function') {
-                    cerrarModal();
-                    setTimeout(() => verDocumentosCliente(), 500);
-                }
-            } catch (error) {
-                showToast('✗ Error al subir documento', 'error');
-            }
-        }
-    };
-    input.click();
-}
-
-// Función para ver todos los documentos (si no existe)
-async function verDocumentosCliente() {
-    const user = window.db?.obtenerUsuarioActual();
-    if (!user) return;
-    
-    const docs = await window.db.documentos.obtenerPorUsuario(user.email);
-    const pendientes = (docs || []).filter(d => d.estado === 'pendiente');
-    const subidos = (docs || []).filter(d => d.estado === 'subido');
-    
-    let html = `
-        <div>
-            <h2 style="font-family:Cormorant Garamond,serif;color:var(--gold);margin-bottom:1rem">📄 Mis Documentos</h2>
-            <div style="background:rgba(237,108,2,0.1);border:1px solid #ed6c02;border-radius:8px;padding:1rem;margin-bottom:1.5rem">
-                <h3 style="margin-bottom:0.8rem;color:#ed6c02">⚠️ Documentos Pendientes por Subir</h3>
-                <div id="lista-pendientes-cliente">${pendientes.length === 0 ? '<p style="color:var(--text-muted)">✅ No hay documentos pendientes</p>' : ''}</div>
-            </div>
-            <div style="background:var(--bg2);border:1px solid var(--gold-border);border-radius:8px;padding:1rem;margin-bottom:1.5rem">
-                <h3 style="margin-bottom:0.8rem">📎 Documentos Subidos</h3>
-                <div id="lista-subidos-cliente">${subidos.length === 0 ? '<p style="color:var(--text-muted)">📭 No hay documentos subidos</p>' : ''}</div>
-            </div>
-            <div style="background:var(--bg2);border:1px solid var(--gold-border);border-radius:8px;padding:1rem">
-                <h3 style="margin-bottom:0.8rem">➕ Subir Nuevo Documento</h3>
-                <input id="doc-nombre" placeholder="Nombre del documento" style="width:100%;padding:0.6rem;margin-bottom:0.5rem;background:var(--bg);border:1px solid var(--gold-border);border-radius:4px">
-                <textarea id="doc-desc" rows="2" placeholder="Descripción" style="width:100%;padding:0.6rem;background:var(--bg);border:1px solid var(--gold-border);border-radius:4px"></textarea>
-                <button class="btn-gold" onclick="subirDocumentoNuevo()" style="width:100%;margin-top:0.5rem">📤 Subir Documento</button>
-            </div>
-        </div>
-    `;
-    mostrarModal(html, 'Mis Documentos');
-    
-    const pendientesContainer = document.getElementById('lista-pendientes-cliente');
-    if (pendientesContainer && pendientes.length) {
-        pendientesContainer.innerHTML = pendientes.map(d => `
-            <div style="background:var(--card-hover);border:1px solid #ed6c02;border-radius:8px;padding:0.8rem;margin-bottom:0.8rem">
-                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap">
-                    <div><strong>📄 ${d.nombre}</strong><p style="font-size:0.8rem;color:var(--text-muted);margin-top:0.3rem">${d.descripcion || ''}</p></div>
-                    <button class="doc-btn" onclick="subirDocumentoPendiente(${d.id})">Subir ahora</button>
-                </div>
-            </div>
-        `).join('');
-    }
-    
-    const subidosContainer = document.getElementById('lista-subidos-cliente');
-    if (subidosContainer && subidos.length) {
-        subidosContainer.innerHTML = subidos.map(d => `
-            <div style="background:var(--card-hover);border:1px solid var(--gold-border);border-radius:8px;padding:0.8rem;margin-bottom:0.8rem">
-                <strong>📄 ${d.nombre}</strong>
-                <p style="font-size:0.8rem;color:var(--text-muted);margin-top:0.3rem">${d.descripcion || ''}</p>
-                <small style="color:#2e7d32">✅ Subido el ${d.fechaSubida ? new Date(d.fechaSubida).toLocaleDateString() : 'recientemente'}</small>
-            </div>
-        `).join('');
-    }
-}
-
-async function subirDocumentoNuevo() {
-    const nombre = document.getElementById('doc-nombre')?.value;
-    if (!nombre) {
-        showSimpleMessage('✗ El nombre del documento es obligatorio', 'error');
-        return;
-    }
-    const user = window.db?.obtenerUsuarioActual();
-    if (!user) return;
-    
-    await window.db.documentos.agregar(user.email, nombre, document.getElementById('doc-desc')?.value || '', 'General');
-    showToast('✓ Documento subido exitosamente', 'success');
-    cerrarModal();
-    setTimeout(() => verDocumentosCliente(), 500);
 }
