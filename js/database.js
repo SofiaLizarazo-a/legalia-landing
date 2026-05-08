@@ -1,5 +1,5 @@
 // ============================================
-// LEGALIA - BASE DE DATOS 
+// LEGALIA - BASE DE DATOS (LocalStorage)
 // ============================================
 
 console.log('📁 [database.js] Cargando...');
@@ -30,80 +30,14 @@ const USUARIO_ADMIN = {
     fechaRegistro: new Date().toISOString()
 };
 
-// ABOGADOS PREDETERMINADOS (siempre disponibles)
+// ABOGADOS PREDETERMINADOS
 const ABOGADOS_PREDETERMINADOS = [
-    {
-        email: 'andres.morales@legalia.com',
-        password: 'Abogado123',
-        role: 'abogado',
-        nombre: 'Andrés',
-        apellido: 'Morales',
-        especialidad: 'Derecho Civil',
-        tarjetaProfesional: 'TP-001',
-        activo: true,
-        telefono: '3112223344',
-        fechaRegistro: new Date().toISOString()
-    },
-    {
-        email: 'felipe.soto@legalia.com',
-        password: 'Abogado123',
-        role: 'abogado',
-        nombre: 'Felipe',
-        apellido: 'Soto',
-        especialidad: 'Derecho Penal',
-        tarjetaProfesional: 'TP-002',
-        activo: true,
-        telefono: '3112223355',
-        fechaRegistro: new Date().toISOString()
-    },
-    {
-        email: 'camila.rios@legalia.com',
-        password: 'Abogado123',
-        role: 'abogado',
-        nombre: 'Camila',
-        apellido: 'Ríos',
-        especialidad: 'Derecho Laboral',
-        tarjetaProfesional: 'TP-003',
-        activo: true,
-        telefono: '3112223366',
-        fechaRegistro: new Date().toISOString()
-    },
-    {
-        email: 'valeria.cruz@legalia.com',
-        password: 'Abogado123',
-        role: 'abogado',
-        nombre: 'Valeria',
-        apellido: 'Cruz',
-        especialidad: 'Derecho de Familia',
-        tarjetaProfesional: 'TP-004',
-        activo: true,
-        telefono: '3112223377',
-        fechaRegistro: new Date().toISOString()
-    },
-    {
-        email: 'ricardo.mendez@legalia.com',
-        password: 'Abogado123',
-        role: 'abogado',
-        nombre: 'Ricardo',
-        apellido: 'Méndez',
-        especialidad: 'Derecho Comercial',
-        tarjetaProfesional: 'TP-005',
-        activo: true,
-        telefono: '3112223388',
-        fechaRegistro: new Date().toISOString()
-    },
-    {
-        email: 'sergio.torres@legalia.com',
-        password: 'Abogado123',
-        role: 'abogado',
-        nombre: 'Sergio',
-        apellido: 'Torres',
-        especialidad: 'Derecho Administrativo',
-        tarjetaProfesional: 'TP-006',
-        activo: true,
-        telefono: '3112223399',
-        fechaRegistro: new Date().toISOString()
-    }
+    { email: 'andres.morales@legalia.com', password: 'Abogado123', role: 'abogado', nombre: 'Andrés', apellido: 'Morales', especialidad: 'Derecho Civil', activo: true, telefono: '3112223344', fechaRegistro: new Date().toISOString() },
+    { email: 'felipe.soto@legalia.com', password: 'Abogado123', role: 'abogado', nombre: 'Felipe', apellido: 'Soto', especialidad: 'Derecho Penal', activo: true, telefono: '3112223355', fechaRegistro: new Date().toISOString() },
+    { email: 'camila.rios@legalia.com', password: 'Abogado123', role: 'abogado', nombre: 'Camila', apellido: 'Ríos', especialidad: 'Derecho Laboral', activo: true, telefono: '3112223366', fechaRegistro: new Date().toISOString() },
+    { email: 'valeria.cruz@legalia.com', password: 'Abogado123', role: 'abogado', nombre: 'Valeria', apellido: 'Cruz', especialidad: 'Derecho de Familia', activo: true, telefono: '3112223377', fechaRegistro: new Date().toISOString() },
+    { email: 'ricardo.mendez@legalia.com', password: 'Abogado123', role: 'abogado', nombre: 'Ricardo', apellido: 'Méndez', especialidad: 'Derecho Comercial', activo: true, telefono: '3112223388', fechaRegistro: new Date().toISOString() },
+    { email: 'sergio.torres@legalia.com', password: 'Abogado123', role: 'abogado', nombre: 'Sergio', apellido: 'Torres', especialidad: 'Derecho Administrativo', activo: true, telefono: '3112223399', fechaRegistro: new Date().toISOString() }
 ];
 
 // ==================== INICIALIZACIÓN ====================
@@ -111,7 +45,6 @@ const ABOGADOS_PREDETERMINADOS = [
 function iniciarBaseDatos() {
     return new Promise((resolve) => {
         try {
-            // Crear todas las tablas si no existen
             Object.values(DB_TABLES).forEach(tabla => {
                 if (!localStorage.getItem(tabla)) {
                     localStorage.setItem(tabla, JSON.stringify([]));
@@ -119,29 +52,24 @@ function iniciarBaseDatos() {
                 }
             });
             
-            // Inicializar usuarios con admin y abogados predeterminados
             const usuarios = JSON.parse(localStorage.getItem(DB_TABLES.usuarios));
             let cambios = false;
             
-            // Agregar admin si no existe
             if (!usuarios.find(u => u.email === USUARIO_ADMIN.email)) {
                 usuarios.push(USUARIO_ADMIN);
                 cambios = true;
                 console.log('✅ Administrador agregado');
             }
             
-            // Agregar abogados predeterminados si no existen
             ABOGADOS_PREDETERMINADOS.forEach(abogado => {
                 if (!usuarios.find(u => u.email === abogado.email)) {
                     usuarios.push(abogado);
                     cambios = true;
-                    console.log(`✅ Abogado ${abogado.nombre} ${abogado.apellido} agregado`);
+                    console.log(`✅ Abogado ${abogado.nombre} agregado`);
                 }
             });
             
-            if (cambios) {
-                localStorage.setItem(DB_TABLES.usuarios, JSON.stringify(usuarios));
-            }
+            if (cambios) localStorage.setItem(DB_TABLES.usuarios, JSON.stringify(usuarios));
             
             console.log('✅ Base de datos local lista');
             resolve(true);
@@ -157,12 +85,10 @@ function iniciarBaseDatos() {
 function crearUsuario(nombre, apellido, email, password, role = 'cliente') {
     return new Promise((resolve, reject) => {
         const usuarios = JSON.parse(localStorage.getItem(DB_TABLES.usuarios));
-        
         if (usuarios.find(u => u.email === email.toLowerCase())) {
             reject(new Error('Email ya registrado'));
             return;
         }
-        
         const nuevoUsuario = {
             email: email.toLowerCase(),
             nombre: nombre.trim(),
@@ -170,13 +96,11 @@ function crearUsuario(nombre, apellido, email, password, role = 'cliente') {
             password: password,
             role: role,
             activo: role === 'abogado' ? false : true,
-            telefono: '',
-            documento: '',
+            telefono: '', documento: '',
             especialidad: role === 'abogado' ? '' : null,
             tarjetaProfesional: role === 'abogado' ? '' : null,
             fechaRegistro: new Date().toISOString()
         };
-        
         usuarios.push(nuevoUsuario);
         localStorage.setItem(DB_TABLES.usuarios, JSON.stringify(usuarios));
         resolve(nuevoUsuario);
@@ -193,26 +117,11 @@ function obtenerUsuario(email) {
 function autenticarUsuario(email, password, role) {
     return new Promise(async (resolve, reject) => {
         const user = await obtenerUsuario(email);
-        
-        if (!user) {
-            reject(new Error('Usuario no encontrado'));
-            return;
-        }
-        if (user.password !== password) {
-            reject(new Error('Contraseña incorrecta'));
-            return;
-        }
-        if (user.role !== role) {
-            const nombreRol = role === 'administrador' ? 'administrador' : role;
-            reject(new Error(`No eres ${nombreRol}`));
-            return;
-        }
-        if (!user.activo) {
-            reject(new Error('Cuenta desactivada. Contacta al administrador.'));
-            return;
-        }
-        
-        resolve(user);
+        if (!user) reject(new Error('Usuario no encontrado'));
+        else if (user.password !== password) reject(new Error('Contraseña incorrecta'));
+        else if (user.role !== role) reject(new Error(`No eres ${role === 'administrador' ? 'administrador' : role}`));
+        else if (!user.activo) reject(new Error('Cuenta desactivada'));
+        else resolve(user);
     });
 }
 
@@ -229,23 +138,11 @@ function obtenerUsuariosPorRol(role) {
     });
 }
 
-function obtenerAbogadosActivos() {
-    return new Promise((resolve) => {
-        const usuarios = JSON.parse(localStorage.getItem(DB_TABLES.usuarios)) || [];
-        resolve(usuarios.filter(u => u.role === 'abogado' && u.activo === true));
-    });
-}
-
 function actualizarUsuario(usuario) {
     return new Promise((resolve, reject) => {
         const usuarios = JSON.parse(localStorage.getItem(DB_TABLES.usuarios));
         const index = usuarios.findIndex(u => u.email === usuario.email);
-        
-        if (index === -1) {
-            reject(new Error('Usuario no encontrado'));
-            return;
-        }
-        
+        if (index === -1) reject(new Error('Usuario no encontrado'));
         usuarios[index] = usuario;
         localStorage.setItem(DB_TABLES.usuarios, JSON.stringify(usuarios));
         resolve(usuario);
@@ -257,8 +154,6 @@ function actualizarUsuario(usuario) {
 function crearCaso(usuarioEmail, usuarioNombre, titulo, descripcion, area) {
     return new Promise((resolve) => {
         const casos = JSON.parse(localStorage.getItem(DB_TABLES.casos));
-        
-        // Buscar un abogado automáticamente según el área
         const abogados = JSON.parse(localStorage.getItem(DB_TABLES.usuarios)) || [];
         const abogadoAsignado = abogados.find(a => a.role === 'abogado' && a.activo === true && a.especialidad === area);
         
@@ -275,7 +170,6 @@ function crearCaso(usuarioEmail, usuarioNombre, titulo, descripcion, area) {
             fechaCreacion: new Date().toISOString(),
             ultimaActualizacion: new Date().toISOString()
         };
-        
         casos.push(nuevoCaso);
         localStorage.setItem(DB_TABLES.casos, JSON.stringify(casos));
         console.log(`✅ Caso creado: ${titulo} - Abogado: ${nuevoCaso.abogadoNombre}`);
@@ -290,13 +184,6 @@ function obtenerCasosPorUsuario(usuarioEmail) {
     });
 }
 
-function obtenerCasosPorAbogado(abogadoEmail) {
-    return new Promise((resolve) => {
-        const casos = JSON.parse(localStorage.getItem(DB_TABLES.casos)) || [];
-        resolve(casos.filter(c => c.abogadoEmail === abogadoEmail));
-    });
-}
-
 function obtenerTodosLosCasos() {
     return new Promise((resolve) => {
         resolve(JSON.parse(localStorage.getItem(DB_TABLES.casos)) || []);
@@ -307,32 +194,9 @@ function actualizarEstadoCaso(id, estado) {
     return new Promise((resolve, reject) => {
         const casos = JSON.parse(localStorage.getItem(DB_TABLES.casos));
         const index = casos.findIndex(c => c.id === id);
-        
-        if (index === -1) {
-            reject(new Error('Caso no encontrado'));
-            return;
-        }
-        
+        if (index === -1) reject(new Error('Caso no encontrado'));
         casos[index].estado = estado;
         casos[index].ultimaActualizacion = new Date().toISOString();
-        localStorage.setItem(DB_TABLES.casos, JSON.stringify(casos));
-        resolve(casos[index]);
-    });
-}
-
-function asignarAbogadoACaso(id, abogadoEmail, abogadoNombre) {
-    return new Promise((resolve, reject) => {
-        const casos = JSON.parse(localStorage.getItem(DB_TABLES.casos));
-        const index = casos.findIndex(c => c.id === id);
-        
-        if (index === -1) {
-            reject(new Error('Caso no encontrado'));
-            return;
-        }
-        
-        casos[index].abogadoEmail = abogadoEmail;
-        casos[index].abogadoNombre = abogadoNombre;
-        casos[index].estado = 'En Progreso';
         localStorage.setItem(DB_TABLES.casos, JSON.stringify(casos));
         resolve(casos[index]);
     });
@@ -357,6 +221,7 @@ function agregarDocumento(usuarioEmail, nombre, descripcion, area, abogadoEmail 
         };
         docs.push(nuevoDoc);
         localStorage.setItem(DB_TABLES.documentos, JSON.stringify(docs));
+        console.log(`✅ Documento pendiente creado: ${nombre} para ${usuarioEmail}`);
         resolve(nuevoDoc.id);
     });
 }
@@ -379,16 +244,12 @@ function subirDocumento(id, archivoNombre) {
     return new Promise((resolve, reject) => {
         const docs = JSON.parse(localStorage.getItem(DB_TABLES.documentos));
         const index = docs.findIndex(d => d.id === id);
-        
-        if (index === -1) {
-            reject(new Error('Documento no encontrado'));
-            return;
-        }
-        
+        if (index === -1) reject(new Error('Documento no encontrado'));
         docs[index].estado = 'subido';
         docs[index].archivo = archivoNombre;
         docs[index].fechaSubida = new Date().toISOString();
         localStorage.setItem(DB_TABLES.documentos, JSON.stringify(docs));
+        console.log(`✅ Documento subido: ${docs[index].nombre}`);
         resolve(docs[index]);
     });
 }
@@ -499,12 +360,7 @@ function actualizarConversacion(id, mensajes) {
     return new Promise((resolve, reject) => {
         const conversaciones = JSON.parse(localStorage.getItem(DB_TABLES.conversaciones));
         const index = conversaciones.findIndex(c => c.id === id);
-        
-        if (index === -1) {
-            reject(new Error('Conversación no encontrada'));
-            return;
-        }
-        
+        if (index === -1) reject(new Error('Conversación no encontrada'));
         conversaciones[index].mensajes = mensajes;
         conversaciones[index].ultimaActualizacion = new Date().toISOString();
         localStorage.setItem(DB_TABLES.conversaciones, JSON.stringify(conversaciones));
@@ -524,17 +380,14 @@ window.db = {
         autenticar: autenticarUsuario,
         todos: obtenerTodosUsuarios,
         obtenerPorRol: obtenerUsuariosPorRol,
-        obtenerAbogadosActivos: obtenerAbogadosActivos,
         actualizar: actualizarUsuario
     },
     
     casos: {
         crear: crearCaso,
         obtenerPorUsuario: obtenerCasosPorUsuario,
-        obtenerPorAbogado: obtenerCasosPorAbogado,
         obtenerTodos: obtenerTodosLosCasos,
-        actualizarEstado: actualizarEstadoCaso,
-        asignarAbogado: asignarAbogadoACaso
+        actualizarEstado: actualizarEstadoCaso
     },
     
     documentos: {
