@@ -700,3 +700,145 @@ async function verTransaccionesAdmin() {
     html += `</div></div>`;
     mostrarModal(html, 'Transacciones');
 }
+// ==================== DOCUMENTOS PENDIENTES PARA CLIENTE ====================
+
+async function cargarDocumentosPendientesCliente() {
+    const user = window.db?.obtenerUsuarioActual();
+    if (!user || user.role !== 'cliente') return;
+    
+    console.log('🔄 Cargando documentos pendientes para:', user.email);
+    
+    try {
+        const docs = await window.db.documentos.obtenerPorUsuario(user.email);
+        console.log('📄 Documentos encontrados:', docs);
+        
+        const pendientes = (docs || []).filter(d => d.estado === 'pendiente');
+        
+        // Eliminar sección anterior si existe
+        let section = document.getElementById('doc-pend-dashboard');
+        if (section) section.remove();
+        
+        if (pendientes.length > 0) {
+            section = document.createElement('div');
+            section.id = 'doc-pend-dashboard';
+            section.innerHTML = `
+                <div style="margin-top:2rem;padding:1rem;background:rgba(237,108,2,0.1);border:1px solid #ed6c02;border-radius:8px">
+                    <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.8rem">
+                        <span>⚠️</span>
+                        <strong>📄 Documentos Pendientes (${pendientes.length})</strong>
+                    </div>
+                    <div id="lista-pendientes-dashboard"></div>
+                    <button class="dash-card-btn" style="margin-top:0.8rem;width:100%" onclick="verDocumentosCliente()">Ver todos mis documentos →</button>
+                </div>
+            `;
+            const dashboardContainer = document.querySelector('#dashboardOverlay > div > div:last-child');
+            if (dashboardContainer) dashboardContainer.appendChild(section);
+            
+            const container = document.getElementById('lista-pendientes-dashboard');
+            if (container) {
+                container.innerHTML = pendientes.slice(0, 3).map(d => `
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0;border-bottom:1px solid var(--gold-border)">
+                        <div>
+                            <strong>📄 ${d.nombre}</strong>
+                            <p style="font-size:0.7rem;color:var(--text-muted)">${d.descripcion || ''}</p>
+                        </div>
+                        <button class="doc-btn" onclick="subirDocumentoPendiente(${d.id})">Subir</button>
+                    </div>
+                `).join('');
+            }
+        }
+    } catch (error) {
+        console.error('❌ Error al cargar documentos:', error);
+    }
+}
+
+async function subirDocumentoPendiente(id) {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.onchange = async (e) => {
+        if (e.target.files[0]) {
+            try {
+                await window.db.documentos.subir(id, e.target.files[0].name);
+                showToast('✓ Documento subido exitosamente', 'success');
+                // Recargar listas
+                await cargarDocumentosPendientesCliente();
+                if (typeof verDocumentosCliente === 'function') {
+                    cerrarModal();
+                    setTimeout(() => verDocumentosCliente(), 500);
+                }
+            } catch (error) {
+                showToast('✗ Error al subir documento', 'error');
+            }
+        }
+    };
+    input.click();
+}
+
+// Función para ver todos los documentos (si no existe)
+async function verDocumentosCliente() {
+    const user = window.db?.obtenerUsuarioActual();
+    if (!user) return;
+    
+    const docs = await window.db.documentos.obtenerPorUsuario(user.email);
+    const pendientes = (docs || []).filter(d => d.estado === 'pendiente');
+    const subidos = (docs || []).filter(d => d.estado === 'subido');
+    
+    let html = `
+        <div>
+            <h2 style="font-family:Cormorant Garamond,serif;color:var(--gold);margin-bottom:1rem">📄 Mis Documentos</h2>
+            <div style="background:rgba(237,108,2,0.1);border:1px solid #ed6c02;border-radius:8px;padding:1rem;margin-bottom:1.5rem">
+                <h3 style="margin-bottom:0.8rem;color:#ed6c02">⚠️ Documentos Pendientes por Subir</h3>
+                <div id="lista-pendientes-cliente">${pendientes.length === 0 ? '<p style="color:var(--text-muted)">✅ No hay documentos pendientes</p>' : ''}</div>
+            </div>
+            <div style="background:var(--bg2);border:1px solid var(--gold-border);border-radius:8px;padding:1rem;margin-bottom:1.5rem">
+                <h3 style="margin-bottom:0.8rem">📎 Documentos Subidos</h3>
+                <div id="lista-subidos-cliente">${subidos.length === 0 ? '<p style="color:var(--text-muted)">📭 No hay documentos subidos</p>' : ''}</div>
+            </div>
+            <div style="background:var(--bg2);border:1px solid var(--gold-border);border-radius:8px;padding:1rem">
+                <h3 style="margin-bottom:0.8rem">➕ Subir Nuevo Documento</h3>
+                <input id="doc-nombre" placeholder="Nombre del documento" style="width:100%;padding:0.6rem;margin-bottom:0.5rem;background:var(--bg);border:1px solid var(--gold-border);border-radius:4px">
+                <textarea id="doc-desc" rows="2" placeholder="Descripción" style="width:100%;padding:0.6rem;background:var(--bg);border:1px solid var(--gold-border);border-radius:4px"></textarea>
+                <button class="btn-gold" onclick="subirDocumentoNuevo()" style="width:100%;margin-top:0.5rem">📤 Subir Documento</button>
+            </div>
+        </div>
+    `;
+    mostrarModal(html, 'Mis Documentos');
+    
+    const pendientesContainer = document.getElementById('lista-pendientes-cliente');
+    if (pendientesContainer && pendientes.length) {
+        pendientesContainer.innerHTML = pendientes.map(d => `
+            <div style="background:var(--card-hover);border:1px solid #ed6c02;border-radius:8px;padding:0.8rem;margin-bottom:0.8rem">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap">
+                    <div><strong>📄 ${d.nombre}</strong><p style="font-size:0.8rem;color:var(--text-muted);margin-top:0.3rem">${d.descripcion || ''}</p></div>
+                    <button class="doc-btn" onclick="subirDocumentoPendiente(${d.id})">Subir ahora</button>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    const subidosContainer = document.getElementById('lista-subidos-cliente');
+    if (subidosContainer && subidos.length) {
+        subidosContainer.innerHTML = subidos.map(d => `
+            <div style="background:var(--card-hover);border:1px solid var(--gold-border);border-radius:8px;padding:0.8rem;margin-bottom:0.8rem">
+                <strong>📄 ${d.nombre}</strong>
+                <p style="font-size:0.8rem;color:var(--text-muted);margin-top:0.3rem">${d.descripcion || ''}</p>
+                <small style="color:#2e7d32">✅ Subido el ${d.fechaSubida ? new Date(d.fechaSubida).toLocaleDateString() : 'recientemente'}</small>
+            </div>
+        `).join('');
+    }
+}
+
+async function subirDocumentoNuevo() {
+    const nombre = document.getElementById('doc-nombre')?.value;
+    if (!nombre) {
+        showSimpleMessage('✗ El nombre del documento es obligatorio', 'error');
+        return;
+    }
+    const user = window.db?.obtenerUsuarioActual();
+    if (!user) return;
+    
+    await window.db.documentos.agregar(user.email, nombre, document.getElementById('doc-desc')?.value || '', 'General');
+    showToast('✓ Documento subido exitosamente', 'success');
+    cerrarModal();
+    setTimeout(() => verDocumentosCliente(), 500);
+}
