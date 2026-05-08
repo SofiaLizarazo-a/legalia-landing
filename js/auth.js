@@ -220,6 +220,12 @@ async function doRegister() {
         document.querySelector('#registerModal input[placeholder="Tu apellido"]').value = '';
         document.querySelector('#registerModal input[type="email"]').value = '';
         document.querySelector('#registerModal input[type="password"]').value = '';
+        if (document.querySelector('#registerModal input[placeholder="Número de tarjeta profesional"]')) {
+            document.querySelector('#registerModal input[placeholder="Número de tarjeta profesional"]').value = '';
+        }
+        if (document.querySelector('#registerModal select')) {
+            document.querySelector('#registerModal select').value = '';
+        }
         
         openModal('login');
         setTimeout(() => {
