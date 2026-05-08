@@ -1,11 +1,7 @@
 // ============================================
-// LEGALIA DATABASE - VERSIÓN SIMPLIFICADA Y ROBUSTA
+// LEGALIA DATABASE - 
 // ============================================
 
-const DB_NAME = 'LegaliaDB';
-const DB_VERSION = 3;
-
-let dbInstance = null;
 let usuarioActual = null;
 
 // Usuario administrador por defecto
@@ -16,106 +12,56 @@ const ADMIN = {
     nombre: 'Administrador',
     apellido: 'Legalia',
     activo: true,
+    telefono: '',
+    documento: '',
     fechaRegistro: new Date().toISOString()
 };
 
 // ==================== INICIALIZACIÓN ====================
 
 function iniciarBaseDatos() {
-    return new Promise((resolve, reject) => {
-        console.log('🔄 Abriendo conexión a IndexedDB...');
+    return new Promise((resolve) => {
+        console.log('🔄 Inicializando LocalStorage...');
         
-        const request = indexedDB.open(DB_NAME, DB_VERSION);
+        // Crear estructura si no existe
+        if (!localStorage.getItem('legalia_usuarios')) {
+            localStorage.setItem('legalia_usuarios', JSON.stringify([]));
+        }
+        if (!localStorage.getItem('legalia_casos')) {
+            localStorage.setItem('legalia_casos', JSON.stringify([]));
+        }
+        if (!localStorage.getItem('legalia_documentos')) {
+            localStorage.setItem('legalia_documentos', JSON.stringify([]));
+        }
+        if (!localStorage.getItem('legalia_citas')) {
+            localStorage.setItem('legalia_citas', JSON.stringify([]));
+        }
+        if (!localStorage.getItem('legalia_pagos')) {
+            localStorage.setItem('legalia_pagos', JSON.stringify([]));
+        }
+        if (!localStorage.getItem('legalia_calificaciones')) {
+            localStorage.setItem('legalia_calificaciones', JSON.stringify([]));
+        }
+        if (!localStorage.getItem('legalia_conversaciones')) {
+            localStorage.setItem('legalia_conversaciones', JSON.stringify([]));
+        }
         
-        request.onerror = function(event) {
-            console.error('❌ Error al abrir DB:', event.target.error);
-            reject(new Error('No se pudo acceder a la base de datos. Verifica que tu navegador soporte IndexedDB.'));
-        };
+        // Inicializar admin
+        inicializarAdmin();
         
-        request.onsuccess = function(event) {
-            dbInstance = event.target.result;
-            console.log('✅ Base de datos conectada exitosamente');
-            
-            // Inicializar admin si no existe
-            inicializarAdmin().then(() => {
-                resolve(dbInstance);
-            }).catch(err => {
-                console.warn('⚠️ Error al inicializar admin:', err);
-                resolve(dbInstance);
-            });
-        };
-        
-        request.onupgradeneeded = function(event) {
-            const db = event.target.result;
-            console.log('🔄 Actualizando estructura de base de datos...');
-            
-            // Crear tabla de usuarios
-            if (!db.objectStoreNames.contains('usuarios')) {
-                const userStore = db.createObjectStore('usuarios', { keyPath: 'email' });
-                userStore.createIndex('role', 'role', { unique: false });
-                userStore.createIndex('nombre', 'nombre', { unique: false });
-                console.log('✅ Tabla "usuarios" creada');
-            }
-            
-            // Crear tabla de casos
-            if (!db.objectStoreNames.contains('casos')) {
-                const casoStore = db.createObjectStore('casos', { keyPath: 'id', autoIncrement: true });
-                casoStore.createIndex('usuarioEmail', 'usuarioEmail', { unique: false });
-                casoStore.createIndex('abogadoEmail', 'abogadoEmail', { unique: false });
-                casoStore.createIndex('estado', 'estado', { unique: false });
-                console.log('✅ Tabla "casos" creada');
-            }
-            
-            // Crear tabla de documentos
-            if (!db.objectStoreNames.contains('documentos')) {
-                const docStore = db.createObjectStore('documentos', { keyPath: 'id', autoIncrement: true });
-                docStore.createIndex('usuarioEmail', 'usuarioEmail', { unique: false });
-                docStore.createIndex('estado', 'estado', { unique: false });
-                console.log('✅ Tabla "documentos" creada');
-            }
-            
-            // Crear tabla de citas
-            if (!db.objectStoreNames.contains('citas')) {
-                const citaStore = db.createObjectStore('citas', { keyPath: 'id', autoIncrement: true });
-                citaStore.createIndex('usuarioEmail', 'usuarioEmail', { unique: false });
-                citaStore.createIndex('fecha', 'fecha', { unique: false });
-                console.log('✅ Tabla "citas" creada');
-            }
-            
-            // Crear tabla de pagos
-            if (!db.objectStoreNames.contains('pagos')) {
-                const pagoStore = db.createObjectStore('pagos', { keyPath: 'id', autoIncrement: true });
-                pagoStore.createIndex('usuarioEmail', 'usuarioEmail', { unique: false });
-                console.log('✅ Tabla "pagos" creada');
-            }
-            
-            // Crear tabla de calificaciones
-            if (!db.objectStoreNames.contains('calificaciones')) {
-                const calStore = db.createObjectStore('calificaciones', { keyPath: 'id', autoIncrement: true });
-                calStore.createIndex('usuarioEmail', 'usuarioEmail', { unique: false });
-                calStore.createIndex('abogadoEmail', 'abogadoEmail', { unique: false });
-                console.log('✅ Tabla "calificaciones" creada');
-            }
-            
-            // Crear tabla de conversaciones
-            if (!db.objectStoreNames.contains('conversaciones')) {
-                const convStore = db.createObjectStore('conversaciones', { keyPath: 'id', autoIncrement: true });
-                convStore.createIndex('usuarioEmail', 'usuarioEmail', { unique: false });
-                console.log('✅ Tabla "conversaciones" creada');
-            }
-        };
+        console.log('✅ LocalStorage listo');
+        resolve(true);
     });
 }
 
-async function inicializarAdmin() {
-    try {
-        const existe = await obtenerUsuarioPorEmail(ADMIN.email);
-        if (!existe) {
-            await crearUsuario(ADMIN.nombre, ADMIN.apellido, ADMIN.email, ADMIN.password, ADMIN.role);
-            console.log('✅ Usuario administrador creado');
-        }
-    } catch (error) {
-        console.error('Error al inicializar admin:', error);
+function inicializarAdmin() {
+    const usuarios = JSON.parse(localStorage.getItem('legalia_usuarios'));
+    const adminExiste = usuarios.find(u => u.email === ADMIN.email);
+    
+    if (!adminExiste) {
+        usuarios.push(ADMIN);
+        localStorage.setItem('legalia_usuarios', JSON.stringify(usuarios));
+        console.log('✅ Administrador creado');
     }
 }
 
@@ -123,10 +69,13 @@ async function inicializarAdmin() {
 
 function crearUsuario(nombre, apellido, email, password, role = 'cliente') {
     return new Promise((resolve, reject) => {
-        if (!dbInstance) return reject(new Error('Base de datos no inicializada'));
+        const usuarios = JSON.parse(localStorage.getItem('legalia_usuarios'));
+        const existe = usuarios.find(u => u.email === email.toLowerCase());
         
-        const transaction = dbInstance.transaction(['usuarios'], 'readwrite');
-        const store = transaction.objectStore('usuarios');
+        if (existe) {
+            reject(new Error('Email ya registrado'));
+            return;
+        }
         
         const nuevoUsuario = {
             email: email.toLowerCase(),
@@ -140,113 +89,86 @@ function crearUsuario(nombre, apellido, email, password, role = 'cliente') {
             fechaRegistro: new Date().toISOString()
         };
         
-        const request = store.add(nuevoUsuario);
-        
-        request.onsuccess = () => resolve(nuevoUsuario);
-        request.onerror = (event) => {
-            if (event.target.error.name === 'ConstraintError') {
-                reject(new Error('Email ya registrado'));
-            } else {
-                reject(new Error('Error al crear usuario'));
-            }
-        };
+        usuarios.push(nuevoUsuario);
+        localStorage.setItem('legalia_usuarios', JSON.stringify(usuarios));
+        resolve(nuevoUsuario);
     });
 }
 
 function obtenerUsuarioPorEmail(email) {
-    return new Promise((resolve, reject) => {
-        if (!dbInstance) return reject(new Error('Base de datos no inicializada'));
-        
-        const transaction = dbInstance.transaction(['usuarios'], 'readonly');
-        const store = transaction.objectStore('usuarios');
-        const request = store.get(email.toLowerCase());
-        
-        request.onsuccess = () => resolve(request.result || null);
-        request.onerror = () => reject(new Error('Error al buscar usuario'));
+    return new Promise((resolve) => {
+        const usuarios = JSON.parse(localStorage.getItem('legalia_usuarios'));
+        const usuario = usuarios.find(u => u.email === email.toLowerCase());
+        resolve(usuario || null);
     });
 }
 
 function autenticarUsuario(email, password, role) {
     return new Promise(async (resolve, reject) => {
-        try {
-            const usuario = await obtenerUsuarioPorEmail(email);
-            
-            if (!usuario) {
-                reject(new Error('Usuario no encontrado'));
-                return;
-            }
-            
-            if (usuario.password !== password) {
-                reject(new Error('Contraseña incorrecta'));
-                return;
-            }
-            
-            if (usuario.role !== role) {
-                reject(new Error(`No eres ${role === 'administrador' ? 'administrador' : role}`));
-                return;
-            }
-            
-            if (!usuario.activo) {
-                reject(new Error('Cuenta desactivada. Contacta al administrador.'));
-                return;
-            }
-            
-            resolve(usuario);
-        } catch (error) {
-            reject(error);
+        const usuario = await obtenerUsuarioPorEmail(email);
+        
+        if (!usuario) {
+            reject(new Error('Usuario no encontrado'));
+            return;
         }
+        
+        if (usuario.password !== password) {
+            reject(new Error('Contraseña incorrecta'));
+            return;
+        }
+        
+        if (usuario.role !== role) {
+            reject(new Error(`No eres ${role === 'administrador' ? 'administrador' : role}`));
+            return;
+        }
+        
+        if (!usuario.activo) {
+            reject(new Error('Cuenta desactivada'));
+            return;
+        }
+        
+        resolve(usuario);
     });
 }
 
 function obtenerTodosUsuarios() {
-    return new Promise((resolve, reject) => {
-        if (!dbInstance) return reject(new Error('Base de datos no inicializada'));
-        
-        const transaction = dbInstance.transaction(['usuarios'], 'readonly');
-        const store = transaction.objectStore('usuarios');
-        const request = store.getAll();
-        
-        request.onsuccess = () => resolve(request.result || []);
-        request.onerror = () => reject(new Error('Error al obtener usuarios'));
+    return new Promise((resolve) => {
+        const usuarios = JSON.parse(localStorage.getItem('legalia_usuarios'));
+        resolve(usuarios || []);
     });
 }
 
 function obtenerUsuariosPorRol(role) {
-    return new Promise((resolve, reject) => {
-        if (!dbInstance) return reject(new Error('Base de datos no inicializada'));
-        
-        const transaction = dbInstance.transaction(['usuarios'], 'readonly');
-        const index = transaction.objectStore('usuarios').index('role');
-        const request = index.getAll(role);
-        
-        request.onsuccess = () => resolve(request.result || []);
-        request.onerror = () => reject(new Error('Error al obtener usuarios por rol'));
+    return new Promise((resolve) => {
+        const usuarios = JSON.parse(localStorage.getItem('legalia_usuarios'));
+        const filtrados = usuarios.filter(u => u.role === role);
+        resolve(filtrados || []);
     });
 }
 
 function actualizarUsuario(usuario) {
     return new Promise((resolve, reject) => {
-        if (!dbInstance) return reject(new Error('Base de datos no inicializada'));
+        const usuarios = JSON.parse(localStorage.getItem('legalia_usuarios'));
+        const index = usuarios.findIndex(u => u.email === usuario.email);
         
-        const transaction = dbInstance.transaction(['usuarios'], 'readwrite');
-        const store = transaction.objectStore('usuarios');
-        const request = store.put(usuario);
+        if (index === -1) {
+            reject(new Error('Usuario no encontrado'));
+            return;
+        }
         
-        request.onsuccess = () => resolve(usuario);
-        request.onerror = () => reject(new Error('Error al actualizar usuario'));
+        usuarios[index] = usuario;
+        localStorage.setItem('legalia_usuarios', JSON.stringify(usuarios));
+        resolve(usuario);
     });
 }
 
 // ==================== CASOS ====================
 
 function crearCaso(usuarioEmail, usuarioNombre, titulo, descripcion, area) {
-    return new Promise((resolve, reject) => {
-        if (!dbInstance) return reject(new Error('Base de datos no inicializada'));
-        
-        const transaction = dbInstance.transaction(['casos'], 'readwrite');
-        const store = transaction.objectStore('casos');
-        
+    return new Promise((resolve) => {
+        const casos = JSON.parse(localStorage.getItem('legalia_casos'));
         const nuevoCaso = {
+            id: Date.now(),
             usuarioEmail: usuarioEmail.toLowerCase(),
             usuarioNombre: usuarioNombre,
             titulo: titulo,
@@ -259,101 +181,70 @@ function crearCaso(usuarioEmail, usuarioNombre, titulo, descripcion, area) {
             ultimaActualizacion: new Date().toISOString()
         };
         
-        const request = store.add(nuevoCaso);
-        
-        request.onsuccess = () => resolve({ id: request.result, ...nuevoCaso });
-        request.onerror = () => reject(new Error('Error al crear caso'));
+        casos.push(nuevoCaso);
+        localStorage.setItem('legalia_casos', JSON.stringify(casos));
+        resolve(nuevoCaso);
     });
 }
 
 function obtenerCasosPorUsuario(usuarioEmail) {
-    return new Promise((resolve, reject) => {
-        if (!dbInstance) return reject(new Error('Base de datos no inicializada'));
-        
-        const transaction = dbInstance.transaction(['casos'], 'readonly');
-        const index = transaction.objectStore('casos').index('usuarioEmail');
-        const request = index.getAll(usuarioEmail.toLowerCase());
-        
-        request.onsuccess = () => resolve(request.result || []);
-        request.onerror = () => reject(new Error('Error al obtener casos'));
+    return new Promise((resolve) => {
+        const casos = JSON.parse(localStorage.getItem('legalia_casos'));
+        const filtrados = casos.filter(c => c.usuarioEmail === usuarioEmail.toLowerCase());
+        resolve(filtrados || []);
     });
 }
 
 function obtenerTodosLosCasos() {
-    return new Promise((resolve, reject) => {
-        if (!dbInstance) return reject(new Error('Base de datos no inicializada'));
-        
-        const transaction = dbInstance.transaction(['casos'], 'readonly');
-        const store = transaction.objectStore('casos');
-        const request = store.getAll();
-        
-        request.onsuccess = () => resolve(request.result || []);
-        request.onerror = () => reject(new Error('Error al obtener todos los casos'));
+    return new Promise((resolve) => {
+        const casos = JSON.parse(localStorage.getItem('legalia_casos'));
+        resolve(casos || []);
     });
 }
 
 function actualizarEstadoCaso(id, estado) {
     return new Promise((resolve, reject) => {
-        if (!dbInstance) return reject(new Error('Base de datos no inicializada'));
+        const casos = JSON.parse(localStorage.getItem('legalia_casos'));
+        const index = casos.findIndex(c => c.id === id);
         
-        const transaction = dbInstance.transaction(['casos'], 'readwrite');
-        const store = transaction.objectStore('casos');
-        const request = store.get(id);
+        if (index === -1) {
+            reject(new Error('Caso no encontrado'));
+            return;
+        }
         
-        request.onsuccess = () => {
-            const caso = request.result;
-            if (!caso) {
-                reject(new Error('Caso no encontrado'));
-                return;
-            }
-            caso.estado = estado;
-            caso.ultimaActualizacion = new Date().toISOString();
-            
-            const updateRequest = store.put(caso);
-            updateRequest.onsuccess = () => resolve(caso);
-            updateRequest.onerror = () => reject(new Error('Error al actualizar estado'));
-        };
-        request.onerror = () => reject(new Error('Error al buscar caso'));
+        casos[index].estado = estado;
+        casos[index].ultimaActualizacion = new Date().toISOString();
+        localStorage.setItem('legalia_casos', JSON.stringify(casos));
+        resolve(casos[index]);
     });
 }
 
 function asignarAbogadoACaso(id, abogadoEmail, abogadoNombre) {
     return new Promise((resolve, reject) => {
-        if (!dbInstance) return reject(new Error('Base de datos no inicializada'));
+        const casos = JSON.parse(localStorage.getItem('legalia_casos'));
+        const index = casos.findIndex(c => c.id === id);
         
-        const transaction = dbInstance.transaction(['casos'], 'readwrite');
-        const store = transaction.objectStore('casos');
-        const request = store.get(id);
+        if (index === -1) {
+            reject(new Error('Caso no encontrado'));
+            return;
+        }
         
-        request.onsuccess = () => {
-            const caso = request.result;
-            if (!caso) {
-                reject(new Error('Caso no encontrado'));
-                return;
-            }
-            caso.abogadoEmail = abogadoEmail;
-            caso.abogadoNombre = abogadoNombre;
-            caso.estado = 'En Progreso';
-            caso.ultimaActualizacion = new Date().toISOString();
-            
-            const updateRequest = store.put(caso);
-            updateRequest.onsuccess = () => resolve(caso);
-            updateRequest.onerror = () => reject(new Error('Error al asignar abogado'));
-        };
-        request.onerror = () => reject(new Error('Error al buscar caso'));
+        casos[index].abogadoEmail = abogadoEmail;
+        casos[index].abogadoNombre = abogadoNombre;
+        casos[index].estado = 'En Progreso';
+        casos[index].ultimaActualizacion = new Date().toISOString();
+        localStorage.setItem('legalia_casos', JSON.stringify(casos));
+        resolve(casos[index]);
     });
 }
 
 // ==================== DOCUMENTOS ====================
 
 function agregarDocumento(usuarioEmail, nombre, descripcion, area, abogadoEmail = null) {
-    return new Promise((resolve, reject) => {
-        if (!dbInstance) return reject(new Error('Base de datos no inicializada'));
-        
-        const transaction = dbInstance.transaction(['documentos'], 'readwrite');
-        const store = transaction.objectStore('documentos');
-        
+    return new Promise((resolve) => {
+        const documentos = JSON.parse(localStorage.getItem('legalia_documentos'));
         const nuevoDoc = {
+            id: Date.now(),
             usuarioEmail: usuarioEmail.toLowerCase(),
             nombre: nombre,
             descripcion: descripcion,
@@ -365,65 +256,45 @@ function agregarDocumento(usuarioEmail, nombre, descripcion, area, abogadoEmail 
             fechaSubida: null
         };
         
-        const request = store.add(nuevoDoc);
-        
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(new Error('Error al agregar documento'));
+        documentos.push(nuevoDoc);
+        localStorage.setItem('legalia_documentos', JSON.stringify(documentos));
+        resolve(nuevoDoc.id);
     });
 }
 
 function obtenerDocumentosPendientes(usuarioEmail) {
-    return new Promise((resolve, reject) => {
-        if (!dbInstance) return reject(new Error('Base de datos no inicializada'));
-        
-        const transaction = dbInstance.transaction(['documentos'], 'readonly');
-        const index = transaction.objectStore('documentos').index('usuarioEmail');
-        const request = index.getAll(usuarioEmail.toLowerCase());
-        
-        request.onsuccess = () => {
-            const docs = request.result || [];
-            resolve(docs.filter(d => d.estado === 'pendiente'));
-        };
-        request.onerror = () => reject(new Error('Error al obtener documentos pendientes'));
+    return new Promise((resolve) => {
+        const documentos = JSON.parse(localStorage.getItem('legalia_documentos'));
+        const filtrados = documentos.filter(d => d.usuarioEmail === usuarioEmail.toLowerCase() && d.estado === 'pendiente');
+        resolve(filtrados || []);
     });
 }
 
 function subirDocumento(id, archivoNombre) {
     return new Promise((resolve, reject) => {
-        if (!dbInstance) return reject(new Error('Base de datos no inicializada'));
+        const documentos = JSON.parse(localStorage.getItem('legalia_documentos'));
+        const index = documentos.findIndex(d => d.id === id);
         
-        const transaction = dbInstance.transaction(['documentos'], 'readwrite');
-        const store = transaction.objectStore('documentos');
-        const request = store.get(id);
+        if (index === -1) {
+            reject(new Error('Documento no encontrado'));
+            return;
+        }
         
-        request.onsuccess = () => {
-            const doc = request.result;
-            if (!doc) {
-                reject(new Error('Documento no encontrado'));
-                return;
-            }
-            doc.estado = 'subido';
-            doc.archivo = archivoNombre;
-            doc.fechaSubida = new Date().toISOString();
-            
-            const updateRequest = store.put(doc);
-            updateRequest.onsuccess = () => resolve(doc);
-            updateRequest.onerror = () => reject(new Error('Error al subir documento'));
-        };
-        request.onerror = () => reject(new Error('Error al buscar documento'));
+        documentos[index].estado = 'subido';
+        documentos[index].archivo = archivoNombre;
+        documentos[index].fechaSubida = new Date().toISOString();
+        localStorage.setItem('legalia_documentos', JSON.stringify(documentos));
+        resolve(documentos[index]);
     });
 }
 
 // ==================== CITAS ====================
 
 function crearCita(usuarioEmail, titulo, fecha, descripcion, casoId = null) {
-    return new Promise((resolve, reject) => {
-        if (!dbInstance) return reject(new Error('Base de datos no inicializada'));
-        
-        const transaction = dbInstance.transaction(['citas'], 'readwrite');
-        const store = transaction.objectStore('citas');
-        
+    return new Promise((resolve) => {
+        const citas = JSON.parse(localStorage.getItem('legalia_citas'));
         const nuevaCita = {
+            id: Date.now(),
             usuarioEmail: usuarioEmail.toLowerCase(),
             titulo: titulo,
             fecha: new Date(fecha).toISOString(),
@@ -433,36 +304,27 @@ function crearCita(usuarioEmail, titulo, fecha, descripcion, casoId = null) {
             fechaCreacion: new Date().toISOString()
         };
         
-        const request = store.add(nuevaCita);
-        
-        request.onsuccess = () => resolve({ id: request.result, ...nuevaCita });
-        request.onerror = () => reject(new Error('Error al crear cita'));
+        citas.push(nuevaCita);
+        localStorage.setItem('legalia_citas', JSON.stringify(citas));
+        resolve(nuevaCita);
     });
 }
 
 function obtenerCitasPorUsuario(usuarioEmail) {
-    return new Promise((resolve, reject) => {
-        if (!dbInstance) return reject(new Error('Base de datos no inicializada'));
-        
-        const transaction = dbInstance.transaction(['citas'], 'readonly');
-        const index = transaction.objectStore('citas').index('usuarioEmail');
-        const request = index.getAll(usuarioEmail.toLowerCase());
-        
-        request.onsuccess = () => resolve(request.result || []);
-        request.onerror = () => reject(new Error('Error al obtener citas'));
+    return new Promise((resolve) => {
+        const citas = JSON.parse(localStorage.getItem('legalia_citas'));
+        const filtrados = citas.filter(c => c.usuarioEmail === usuarioEmail.toLowerCase());
+        resolve(filtrados || []);
     });
 }
 
 // ==================== PAGOS ====================
 
 function crearPago(usuarioEmail, casoId, casoTitulo, concepto, monto) {
-    return new Promise((resolve, reject) => {
-        if (!dbInstance) return reject(new Error('Base de datos no inicializada'));
-        
-        const transaction = dbInstance.transaction(['pagos'], 'readwrite');
-        const store = transaction.objectStore('pagos');
-        
+    return new Promise((resolve) => {
+        const pagos = JSON.parse(localStorage.getItem('legalia_pagos'));
         const nuevoPago = {
+            id: Date.now(),
             usuarioEmail: usuarioEmail.toLowerCase(),
             casoId: casoId,
             casoTitulo: casoTitulo,
@@ -473,36 +335,27 @@ function crearPago(usuarioEmail, casoId, casoTitulo, concepto, monto) {
             numeroFactura: 'FAC-' + Date.now()
         };
         
-        const request = store.add(nuevoPago);
-        
-        request.onsuccess = () => resolve({ id: request.result, ...nuevoPago });
-        request.onerror = () => reject(new Error('Error al crear pago'));
+        pagos.push(nuevoPago);
+        localStorage.setItem('legalia_pagos', JSON.stringify(pagos));
+        resolve(nuevoPago);
     });
 }
 
 function obtenerPagosPorUsuario(usuarioEmail) {
-    return new Promise((resolve, reject) => {
-        if (!dbInstance) return reject(new Error('Base de datos no inicializada'));
-        
-        const transaction = dbInstance.transaction(['pagos'], 'readonly');
-        const index = transaction.objectStore('pagos').index('usuarioEmail');
-        const request = index.getAll(usuarioEmail.toLowerCase());
-        
-        request.onsuccess = () => resolve(request.result || []);
-        request.onerror = () => reject(new Error('Error al obtener pagos'));
+    return new Promise((resolve) => {
+        const pagos = JSON.parse(localStorage.getItem('legalia_pagos'));
+        const filtrados = pagos.filter(p => p.usuarioEmail === usuarioEmail.toLowerCase());
+        resolve(filtrados || []);
     });
 }
 
 // ==================== CALIFICACIONES ====================
 
 function crearCalificacion(usuarioEmail, abogadoEmail, puntuacion, resena) {
-    return new Promise((resolve, reject) => {
-        if (!dbInstance) return reject(new Error('Base de datos no inicializada'));
-        
-        const transaction = dbInstance.transaction(['calificaciones'], 'readwrite');
-        const store = transaction.objectStore('calificaciones');
-        
-        const nuevaCalificacion = {
+    return new Promise((resolve) => {
+        const calificaciones = JSON.parse(localStorage.getItem('legalia_calificaciones'));
+        const nuevaCal = {
+            id: Date.now(),
             usuarioEmail: usuarioEmail.toLowerCase(),
             abogadoEmail: abogadoEmail,
             puntuacion: puntuacion,
@@ -510,23 +363,19 @@ function crearCalificacion(usuarioEmail, abogadoEmail, puntuacion, resena) {
             fecha: new Date().toISOString()
         };
         
-        const request = store.add(nuevaCalificacion);
-        
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(new Error('Error al crear calificación'));
+        calificaciones.push(nuevaCal);
+        localStorage.setItem('legalia_calificaciones', JSON.stringify(calificaciones));
+        resolve(nuevaCal.id);
     });
 }
 
 // ==================== CONVERSACIONES ====================
 
 function guardarConversacion(usuarioEmail, mensajes, areaSeleccionada = null) {
-    return new Promise((resolve, reject) => {
-        if (!dbInstance) return reject(new Error('Base de datos no inicializada'));
-        
-        const transaction = dbInstance.transaction(['conversaciones'], 'readwrite');
-        const store = transaction.objectStore('conversaciones');
-        
-        const conversacion = {
+    return new Promise((resolve) => {
+        const conversaciones = JSON.parse(localStorage.getItem('legalia_conversaciones'));
+        const nuevaConv = {
+            id: Date.now(),
             usuarioEmail: usuarioEmail.toLowerCase(),
             mensajes: mensajes,
             areaSeleccionada: areaSeleccionada,
@@ -534,48 +383,34 @@ function guardarConversacion(usuarioEmail, mensajes, areaSeleccionada = null) {
             ultimaActualizacion: new Date().toISOString()
         };
         
-        const request = store.add(conversacion);
-        
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(new Error('Error al guardar conversación'));
+        conversaciones.push(nuevaConv);
+        localStorage.setItem('legalia_conversaciones', JSON.stringify(conversaciones));
+        resolve(nuevaConv.id);
     });
 }
 
 function obtenerConversacionesPorUsuario(usuarioEmail) {
-    return new Promise((resolve, reject) => {
-        if (!dbInstance) return reject(new Error('Base de datos no inicializada'));
-        
-        const transaction = dbInstance.transaction(['conversaciones'], 'readonly');
-        const index = transaction.objectStore('conversaciones').index('usuarioEmail');
-        const request = index.getAll(usuarioEmail.toLowerCase());
-        
-        request.onsuccess = () => resolve(request.result || []);
-        request.onerror = () => reject(new Error('Error al obtener conversaciones'));
+    return new Promise((resolve) => {
+        const conversaciones = JSON.parse(localStorage.getItem('legalia_conversaciones'));
+        const filtrados = conversaciones.filter(c => c.usuarioEmail === usuarioEmail.toLowerCase());
+        resolve(filtrados || []);
     });
 }
 
 function actualizarConversacion(id, mensajes) {
     return new Promise((resolve, reject) => {
-        if (!dbInstance) return reject(new Error('Base de datos no inicializada'));
+        const conversaciones = JSON.parse(localStorage.getItem('legalia_conversaciones'));
+        const index = conversaciones.findIndex(c => c.id === id);
         
-        const transaction = dbInstance.transaction(['conversaciones'], 'readwrite');
-        const store = transaction.objectStore('conversaciones');
-        const request = store.get(id);
+        if (index === -1) {
+            reject(new Error('Conversación no encontrada'));
+            return;
+        }
         
-        request.onsuccess = () => {
-            const conv = request.result;
-            if (!conv) {
-                reject(new Error('Conversación no encontrada'));
-                return;
-            }
-            conv.mensajes = mensajes;
-            conv.ultimaActualizacion = new Date().toISOString();
-            
-            const updateRequest = store.put(conv);
-            updateRequest.onsuccess = () => resolve(conv);
-            updateRequest.onerror = () => reject(new Error('Error al actualizar conversación'));
-        };
-        request.onerror = () => reject(new Error('Error al buscar conversación'));
+        conversaciones[index].mensajes = mensajes;
+        conversaciones[index].ultimaActualizacion = new Date().toISOString();
+        localStorage.setItem('legalia_conversaciones', JSON.stringify(conversaciones));
+        resolve(conversaciones[index]);
     });
 }
 
@@ -583,9 +418,8 @@ function actualizarConversacion(id, mensajes) {
 
 window.db = {
     iniciar: iniciarBaseDatos,
-    _db: null,
+    _db: true,
     
-    // Usuarios
     usuarios: {
         crear: crearUsuario,
         obtener: obtenerUsuarioPorEmail,
@@ -595,7 +429,6 @@ window.db = {
         actualizar: actualizarUsuario
     },
     
-    // Casos
     casos: {
         crear: crearCaso,
         obtenerPorUsuario: obtenerCasosPorUsuario,
@@ -604,48 +437,34 @@ window.db = {
         asignarAbogado: asignarAbogadoACaso
     },
     
-    // Documentos
     documentos: {
         agregar: agregarDocumento,
         pendientes: obtenerDocumentosPendientes,
         subir: subirDocumento
     },
     
-    // Citas
     citas: {
         crear: crearCita,
         obtenerPorUsuario: obtenerCitasPorUsuario
     },
     
-    // Pagos
     pagos: {
         crear: crearPago,
         obtenerPorUsuario: obtenerPagosPorUsuario
     },
     
-    // Calificaciones
     calificaciones: {
         crear: crearCalificacion
     },
     
-    // Conversaciones
     conversaciones: {
         guardar: guardarConversacion,
         obtenerPorUsuario: obtenerConversacionesPorUsuario,
         actualizar: actualizarConversacion
     },
     
-    // Utilidades
     obtenerUsuarioActual: () => usuarioActual,
     setUsuarioActual: (u) => { usuarioActual = u; }
 };
 
-// Asignar dbInstance después de inicializar
-iniciarBaseDatos().then(db => {
-    window.db._db = db;
-    console.log('✅ Sistema de base de datos listo');
-}).catch(err => {
-    console.error('❌ Error fatal al iniciar DB:', err);
-});
-
-console.log('📁 Script database.js cargado');
+console.log('📁 database.js cargado (modo LocalStorage - 100% funcional)');
