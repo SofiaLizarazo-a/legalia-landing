@@ -2,6 +2,8 @@
 // LEGALIA DASHBOARD - VERSIÓN COMPLETA FINAL
 // ============================================
 
+console.log('📊 [dashboard.js] Cargando...');
+
 function showDashboard(role, name) {
     const overlay = document.getElementById('dashboardOverlay');
     document.getElementById('dash-name').innerText = name;
@@ -131,14 +133,15 @@ function showModalMessageSimple(message, type = 'success') {
 
 async function verMisCasos() {
     const user = window.db?.obtenerUsuarioActual();
-    if (!user) return;
-    const casos = await new Promise(resolve => {
-        window.db._db.transaction(['casos'], 'readonly')
-            .objectStore('casos')
-            .index('usuarioEmail')
-            .getAll(user.email)
-            .onsuccess = e => resolve(e.target.result || []);
-    });
+    if (!user) {
+        showModalMessageSimple('⚠️ Debes iniciar sesión', 'error');
+        return;
+    }
+    
+    console.log('👤 Usuario actual:', user.email);
+    
+    const casos = await window.db.casos.obtenerPorUsuario(user.email);
+    console.log('📋 Casos encontrados:', casos);
     
     let html = `
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem">
@@ -148,8 +151,12 @@ async function verMisCasos() {
         <div style="display:grid;gap:1rem">
     `;
     
-    if (!casos.length) {
-        html += `<div style="text-align:center;padding:3rem;color:var(--text-muted);border:1px dashed var(--gold-border);border-radius:8px">📭 No tienes casos registrados. Crea tu primer caso.</div>`;
+    if (!casos || casos.length === 0) {
+        html += `<div style="text-align:center;padding:3rem;color:var(--text-muted);border:1px dashed var(--gold-border);border-radius:8px">
+            📭 No tienes casos registrados. 
+            <br><br>Para crear un caso, ve al chat y selecciona un área legal. 
+            <br><br>O haz clic en <strong>"+ Nuevo Caso"</strong> arriba.
+        </div>`;
     } else {
         casos.forEach(c => {
             html += `
@@ -162,6 +169,7 @@ async function verMisCasos() {
                     <div style="display:flex;gap:1rem;margin-top:0.8rem;font-size:0.7rem;color:var(--gold)">
                         <span>👨‍⚖️ ${c.abogadoNombre || 'Por asignar'}</span>
                         <span>📅 ${new Date(c.fechaCreacion).toLocaleDateString()}</span>
+                        <span>⚖️ ${c.area}</span>
                     </div>
                 </div>
             `;
@@ -179,8 +187,12 @@ function nuevoCaso() {
             <textarea id="nuevoCaso-desc" rows="3" placeholder="Describe tu situación legal..." style="width:100%;padding:0.8rem;background:var(--bg2);border:1px solid var(--gold-border);border-radius:6px"></textarea>
             <select id="nuevoCaso-area" style="width:100%;padding:0.8rem;background:var(--bg2);border:1px solid var(--gold-border);border-radius:6px">
                 <option value="">Selecciona el área legal</option>
-                <option>Derecho Civil</option><option>Derecho Penal</option><option>Derecho Laboral</option>
-                <option>Derecho de Familia</option><option>Derecho Comercial</option><option>Derecho Administrativo</option>
+                <option>Derecho Civil</option>
+                <option>Derecho Penal</option>
+                <option>Derecho Laboral</option>
+                <option>Derecho de Familia</option>
+                <option>Derecho Comercial</option>
+                <option>Derecho Administrativo</option>
             </select>
             <div style="display:flex;gap:1rem;margin-top:0.5rem">
                 <button class="btn-gold" onclick="crearCaso()" style="flex:1">Crear Caso</button>
@@ -199,16 +211,18 @@ async function crearCaso() {
     const user = window.db?.obtenerUsuarioActual();
     if (!user) return;
     
-    await window.db.casos.crear(
+    const area = document.getElementById('nuevoCaso-area')?.value || 'Civil';
+    
+    const nuevoCaso = await window.db.casos.crear(
         user.email, 
         user.nombre + ' ' + user.apellido,
         titulo, 
         document.getElementById('nuevoCaso-desc')?.value || '', 
-        document.getElementById('nuevoCaso-area')?.value || 'Civil'
+        area
     );
     
     cerrarModal();
-    showToast('✓ Caso creado exitosamente', 'success');
+    showToast(`✓ Caso creado exitosamente. Abogado asignado: ${nuevoCaso.abogadoNombre || 'Pendiente'}`, 'success');
     setTimeout(() => verMisCasos(), 500);
 }
 
@@ -332,16 +346,12 @@ function generarFactura() {
 async function verDocumentosCliente() {
     const user = window.db?.obtenerUsuarioActual();
     if (!user) return;
-    const docs = await new Promise(resolve => {
-        window.db._db.transaction(['documentos'], 'readonly')
-            .objectStore('documentos')
-            .index('usuarioEmail')
-            .getAll(user.email)
-            .onsuccess = e => resolve(e.target.result || []);
-    });
     
-    const pendientes = docs.filter(d => d.estado === 'pendiente');
-    const subidos = docs.filter(d => d.estado === 'subido');
+    const docs = await window.db.documentos.obtenerPorUsuario(user.email);
+    console.log('📄 Documentos encontrados:', docs);
+    
+    const pendientes = (docs || []).filter(d => d.estado === 'pendiente');
+    const subidos = (docs || []).filter(d => d.estado === 'subido');
     
     let html = `
         <div>
@@ -353,12 +363,6 @@ async function verDocumentosCliente() {
             <div style="background:var(--bg2);border:1px solid var(--gold-border);border-radius:8px;padding:1rem;margin-bottom:1.5rem">
                 <h3 style="margin-bottom:0.8rem">📎 Documentos Subidos</h3>
                 <div id="lista-subidos-cliente">${subidos.length === 0 ? '<p style="color:var(--text-muted)">📭 No hay documentos subidos</p>' : ''}</div>
-            </div>
-            <div style="background:var(--bg2);border:1px solid var(--gold-border);border-radius:8px;padding:1rem">
-                <h3 style="margin-bottom:0.8rem">➕ Subir Nuevo Documento</h3>
-                <input id="doc-nombre" placeholder="Nombre del documento" style="width:100%;padding:0.6rem;margin-bottom:0.5rem;background:var(--bg);border:1px solid var(--gold-border);border-radius:4px">
-                <textarea id="doc-desc" rows="2" placeholder="Descripción" style="width:100%;padding:0.6rem;background:var(--bg);border:1px solid var(--gold-border);border-radius:4px"></textarea>
-                <button class="btn-gold" onclick="subirDocumentoNuevo()" style="width:100%;margin-top:0.5rem">📤 Subir Documento</button>
             </div>
         </div>
     `;
@@ -385,21 +389,6 @@ async function verDocumentosCliente() {
             </div>
         `).join('');
     }
-}
-
-async function subirDocumentoNuevo() {
-    const nombre = document.getElementById('doc-nombre')?.value;
-    if (!nombre) {
-        showModalMessageSimple('✗ El nombre del documento es obligatorio', 'error');
-        return;
-    }
-    const user = window.db?.obtenerUsuarioActual();
-    if (!user) return;
-    
-    await window.db.documentos.agregar(user.email, nombre, document.getElementById('doc-desc')?.value || '', 'General');
-    showToast('✓ Documento subido exitosamente', 'success');
-    cerrarModal();
-    setTimeout(() => verDocumentosCliente(), 500);
 }
 
 async function subirDocumentoPendiente(id) {
@@ -454,7 +443,9 @@ function verCalificaciones() {
             <div style="background:var(--bg2);border:1px solid var(--gold-border);border-radius:8px;padding:1rem;margin-bottom:1rem">
                 <select id="cal-abogado" style="width:100%;padding:0.6rem;margin-bottom:0.8rem;background:var(--bg);border:1px solid var(--gold-border);border-radius:4px">
                     <option>Selecciona un abogado</option>
-                    <option>Dr. Andrés Morales - Civil</option><option>Dr. Felipe Soto - Penal</option><option>Dra. Camila Ríos - Laboral</option>
+                    <option>Dr. Andrés Morales - Civil</option>
+                    <option>Dr. Felipe Soto - Penal</option>
+                    <option>Dra. Camila Ríos - Laboral</option>
                 </select>
                 <div id="estrellas" style="display:flex;gap:0.3rem;margin-bottom:0.8rem;font-size:1.5rem;cursor:pointer">
                     ${[1,2,3,4,5].map(i => `<span onclick="seleccionarEstrella(${i})" id="estrella-${i}" style="color:var(--text-muted)">☆</span>`).join('')}
@@ -612,6 +603,7 @@ async function verificarAbogadosAdmin() {
                 <div style="background:var(--card-hover);border:1px solid var(--gold-border);border-radius:8px;padding:1rem">
                     <div style="display:flex;justify-content:space-between;align-items:center"><h3>${a.nombre} ${a.apellido}</h3><span style="background:${a.activo ? '#2e7d32' : '#ed6c02'};color:white;padding:0.2rem 0.6rem;border-radius:12px;font-size:0.7rem">${a.activo ? 'Verificado' : 'Pendiente'}</span></div>
                     <p style="color:var(--text-muted);margin-top:0.5rem">📧 ${a.email}</p>
+                    <p style="font-size:0.75rem;color:var(--gold)">⚖️ ${a.especialidad || 'No especificada'}</p>
                     <div style="margin-top:1rem"><button class="dash-card-btn" onclick="aprobarAbogado('${a.email}')">${a.activo ? 'Desactivar' : 'Aprobar'}</button></div>
                 </div>
             `;
@@ -646,7 +638,7 @@ async function verTodosUsuarios() {
             </div>
             <div style="background:var(--bg2);border:1px solid var(--gold-border);border-radius:8px;padding:1rem">
                 <h3 style="margin-bottom:0.8rem">⚖️ Abogados (${abogados.length})</h3>
-                ${abogados.length ? abogados.map(a => `<div style="padding:0.5rem 0;border-bottom:1px solid var(--gold-border)"><strong>${a.nombre} ${a.apellido}</strong><br><small>${a.email} · ${a.activo ? '✅ Verificado' : '⏳ Pendiente'}</small></div>`).join('') : '<p>No hay abogados registrados</p>'}
+                ${abogados.length ? abogados.map(a => `<div style="padding:0.5rem 0;border-bottom:1px solid var(--gold-border)"><strong>${a.nombre} ${a.apellido}</strong><br><small>${a.email} · ${a.activo ? '✅ Verificado' : '⏳ Pendiente'} · ${a.especialidad || ''}</small></div>`).join('') : '<p>No hay abogados registrados</p>'}
             </div>
         </div>
     `;
@@ -655,21 +647,29 @@ async function verTodosUsuarios() {
 
 async function verCasosGlobalesAdmin() {
     const casos = await window.db.casos.obtenerTodos();
+    console.log('🌍 Todos los casos:', casos);
     
     let html = `<div><h2 style="font-family:Cormorant Garamond,serif;color:var(--gold);margin-bottom:1rem">🌍 Casos Globales</h2><div style="display:grid;gap:1rem">`;
     
-    if (!casos.length) {
-        html += `<div style="text-align:center;padding:3rem;color:var(--text-muted);border:1px dashed var(--gold-border);border-radius:8px">📭 No hay casos registrados</div>`;
+    if (!casos || casos.length === 0) {
+        html += `<div style="text-align:center;padding:3rem;color:var(--text-muted);border:1px dashed var(--gold-border);border-radius:8px">
+            📭 No hay casos registrados. 
+            <br><br>Los casos se crean cuando un cliente inicia un chat y selecciona un área legal.
+        </div>`;
     } else {
         casos.forEach(c => {
             html += `
                 <div style="background:var(--card-hover);border-left:3px solid var(--gold);border-radius:8px;padding:1rem;margin-bottom:0.8rem">
-                    <div style="display:flex;justify-content:space-between;align-items:center"><h3>📋 ${c.titulo}</h3><span style="background:var(--gold-dim);color:var(--gold);padding:0.2rem 0.6rem;border-radius:12px;font-size:0.7rem">${c.estado}</span></div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:0.5rem">
+                        <h3 style="font-family:Cormorant Garamond,serif">📋 ${c.titulo}</h3>
+                        <span style="background:${c.estado === 'Cerrado' ? '#2e7d32' : c.estado === 'En Progreso' ? '#2980b9' : '#ed6c02'};color:white;padding:0.2rem 0.6rem;border-radius:12px;font-size:0.7rem">${c.estado}</span>
+                    </div>
                     <p style="color:var(--text-muted);margin-top:0.5rem">${c.descripcion || 'Sin descripción'}</p>
                     <div style="display:flex;gap:1rem;margin-top:0.5rem;font-size:0.75rem;flex-wrap:wrap">
                         <span>👤 <strong>Cliente:</strong> ${c.usuarioNombre || c.usuarioEmail}</span>
                         <span>⚖️ <strong>Abogado:</strong> ${c.abogadoNombre || 'Sin asignar'}</span>
                         <span>📅 ${new Date(c.fechaCreacion).toLocaleDateString()}</span>
+                        <span>🏷️ ${c.area}</span>
                     </div>
                 </div>
             `;
