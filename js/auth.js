@@ -1,6 +1,10 @@
 // ============================================
-// LEGALIA AUTH - VERSIÓN CORREGIDA
+// LEGALIA - AUTENTICACIÓN
 // ============================================
+
+console.log('🔐 [auth.js] Cargando...');
+
+// ==================== UTILIDADES UI ====================
 
 function showToast(message, type = 'success') {
     const existingToast = document.querySelector('.toast-notification');
@@ -9,13 +13,9 @@ function showToast(message, type = 'success') {
     const toast = document.createElement('div');
     toast.className = `toast-notification ${type}`;
     toast.textContent = message;
+    toast.style.cssText = `position:fixed;bottom:20px;right:20px;padding:12px 20px;border-radius:8px;color:white;z-index:10000;animation:slideInRight 0.3s ease;background:${type === 'success' ? '#2e7d32' : type === 'error' ? '#c62828' : '#b8942a'}`;
     document.body.appendChild(toast);
-    
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateX(100px)';
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
+    setTimeout(() => toast.remove(), 3000);
 }
 
 function showLoader() {
@@ -23,8 +23,16 @@ function showLoader() {
     if (!loader) {
         loader = document.createElement('div');
         loader.className = 'loader-overlay';
-        loader.innerHTML = '<div class="loader-spinner"></div>';
+        loader.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:10001';
+        loader.innerHTML = '<div style="width:50px;height:50px;border:3px solid var(--gold-border);border-top-color:var(--gold);border-radius:50%;animation:spin 0.8s linear infinite"></div>';
         document.body.appendChild(loader);
+        
+        if (!document.querySelector('#loader-keyframes')) {
+            const style = document.createElement('style');
+            style.id = 'loader-keyframes';
+            style.textContent = '@keyframes spin { to { transform: rotate(360deg); } } @keyframes slideInRight { from { opacity: 0; transform: translateX(100px); } to { opacity: 1; transform: translateX(0); } }';
+            document.head.appendChild(style);
+        }
     }
     loader.style.display = 'flex';
 }
@@ -42,14 +50,10 @@ function showModalError(modalId, message) {
     if (!errorDiv) {
         errorDiv = document.createElement('div');
         errorDiv.className = 'modal-error-fixed';
-        errorDiv.style.cssText = 'background:rgba(198,40,40,0.1);border:1px solid #c62828;color:#c62828;padding:0.75rem 1rem;margin-bottom:1rem;border-radius:8px;font-size:0.85rem;text-align:center;';
-        
+        errorDiv.style.cssText = 'background:rgba(198,40,40,0.1);border:1px solid #c62828;color:#c62828;padding:10px;margin-bottom:15px;border-radius:8px;text-align:center;font-size:14px';
         const modalTag = modal.querySelector('.modal-tag');
-        if (modalTag) {
-            modalTag.insertAdjacentElement('afterend', errorDiv);
-        } else {
-            modal.querySelector('.modal').insertBefore(errorDiv, modal.querySelector('.modal').firstChild);
-        }
+        if (modalTag) modalTag.insertAdjacentElement('afterend', errorDiv);
+        else modal.querySelector('.modal').insertBefore(errorDiv, modal.querySelector('.modal').firstChild);
     }
     errorDiv.textContent = message;
     errorDiv.style.display = 'block';
@@ -63,14 +67,10 @@ function showModalSuccess(modalId, message) {
     if (!successDiv) {
         successDiv = document.createElement('div');
         successDiv.className = 'modal-success-fixed';
-        successDiv.style.cssText = 'background:rgba(46,125,50,0.1);border:1px solid #2e7d32;color:#2e7d32;padding:0.75rem 1rem;margin-bottom:1rem;border-radius:8px;font-size:0.85rem;text-align:center;';
-        
+        successDiv.style.cssText = 'background:rgba(46,125,50,0.1);border:1px solid #2e7d32;color:#2e7d32;padding:10px;margin-bottom:15px;border-radius:8px;text-align:center;font-size:14px';
         const modalTag = modal.querySelector('.modal-tag');
-        if (modalTag) {
-            modalTag.insertAdjacentElement('afterend', successDiv);
-        } else {
-            modal.querySelector('.modal').insertBefore(successDiv, modal.querySelector('.modal').firstChild);
-        }
+        if (modalTag) modalTag.insertAdjacentElement('afterend', successDiv);
+        else modal.querySelector('.modal').insertBefore(successDiv, modal.querySelector('.modal').firstChild);
     }
     successDiv.textContent = message;
     successDiv.style.display = 'block';
@@ -79,10 +79,8 @@ function showModalSuccess(modalId, message) {
 function clearModalMessages(modalId) {
     const modal = document.getElementById(modalId);
     if (!modal) return;
-    
     const errorDiv = modal.querySelector('.modal-error-fixed');
     if (errorDiv) errorDiv.style.display = 'none';
-    
     const successDiv = modal.querySelector('.modal-success-fixed');
     if (successDiv) successDiv.style.display = 'none';
 }
@@ -101,14 +99,24 @@ function getTipo() {
 }
 
 async function esperarDB() {
-    let i = 0;
-    while (i < 50) {
-        if (window.db && window.db._db) return true;
+    let intentos = 0;
+    while (!window.db && intentos < 30) {
         await new Promise(r => setTimeout(r, 100));
-        i++;
+        intentos++;
     }
-    throw new Error('La base de datos no está disponible. Recarga la página.');
+    
+    if (!window.db) {
+        throw new Error('La base de datos no está disponible. Recarga la página.');
+    }
+    
+    if (window.db.iniciar && typeof window.db.iniciar === 'function') {
+        await window.db.iniciar();
+    }
+    
+    return true;
 }
+
+// ==================== LOGIN ====================
 
 async function doLogin() {
     clearModalMessages('loginModal');
@@ -130,7 +138,7 @@ async function doLogin() {
         return;
     }
     if (!valEmail(email)) {
-        showModalError('loginModal', '✗ Ingresa un correo electrónico válido (ejemplo@dominio.com)');
+        showModalError('loginModal', '✗ Ingresa un correo electrónico válido');
         return;
     }
     
@@ -163,6 +171,8 @@ async function doLogin() {
     }
 }
 
+// ==================== REGISTRO ====================
+
 async function doRegister() {
     clearModalMessages('registerModal');
     
@@ -178,7 +188,7 @@ async function doRegister() {
         return;
     }
     if (!valEmail(email)) {
-        showModalError('registerModal', '✗ Ingresa un correo electrónico válido (ejemplo@dominio.com)');
+        showModalError('registerModal', '✗ Ingresa un correo electrónico válido');
         return;
     }
     if (password.length < 8) {
@@ -210,12 +220,6 @@ async function doRegister() {
         document.querySelector('#registerModal input[placeholder="Tu apellido"]').value = '';
         document.querySelector('#registerModal input[type="email"]').value = '';
         document.querySelector('#registerModal input[type="password"]').value = '';
-        if (document.querySelector('#registerModal input[placeholder="Número de tarjeta profesional"]')) {
-            document.querySelector('#registerModal input[placeholder="Número de tarjeta profesional"]').value = '';
-        }
-        if (document.querySelector('#registerModal select')) {
-            document.querySelector('#registerModal select').value = '';
-        }
         
         openModal('login');
         setTimeout(() => {
